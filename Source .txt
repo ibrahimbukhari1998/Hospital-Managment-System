@@ -1,0 +1,81 @@
+#include<iostream>
+#include"function.h"
+using namespace std;
+
+#define cls system("cls");
+#define str cout<<"\n**************************************************\n";
+#define yellow system("Color E0");
+
+
+int main()
+{
+	yellow;
+
+	int check[2] = { 0 };    // this is used to check the type of struct which has been used and the number of the array of that struct. if the check has 99 is both positions than the user and pass is not present 
+	int ch, patfield;
+	string username, password; int option;
+
+//	readdata();
+//	writedata();
+
+	cout << "\n\n\n\n\n\n\n";
+	cout << "\t\t\t\tHOSPITAL MANAGMENT PROGRAM  BY   Syed Muhammad Ibrahim Bukhari\n\n";
+	cout << "\t\t\t\t1. PRESS 1 TO CONTINUE\n";
+	cout << "\t\t\t\t2. PRESS 2 TO EXIT\n";
+	cout << "\t\t\t\tPRESS OPTION:  "; cin >> ch; while (ch < 1 || ch>2) { cout << "ERROR! TRY AGAIN:  "; cin >> ch; }
+
+	if (ch == 1)
+	{
+
+		cls;
+		cout << "\n\n\n\n\n\n\n\n\n";
+		cout << "\t\t\t\tUSERNAME:  "; cin >> username;
+		cout << "\t\t\t\tPASSWORD:  "; cin >> password;
+
+		refer(username, password, check, patfield);
+
+		if (check[0] == 99) { cout << "\n\nTHIS USER DOES NOT EXIST\n"; system("pause"); }
+
+		cls;
+		if (check[0] == 666)
+		{
+			adminmenu(username, password);
+			cls;
+			main();
+		}
+		else if (check[0] == 15)
+		{
+			receptionmenu(username, password);
+			cls;
+			main();
+		}
+		else if (patfield != 99)
+		{
+			patientmenu(username, password, patfield, check[0], check[1]);
+			cls;
+			main();
+		}
+		else if (check[0] >= 8 && check[0] <= 14)
+		{
+			pamenu(username, password, check[0], check[1]);
+			cls;
+			main();
+		}
+		else if (check[0] >= 1 && check[0] <= 7)
+		{
+			doctormenu(username, password, check[0], check[1]);
+			cls;
+			main();
+		}
+		else
+		{
+			cls;
+			main();
+		}
+
+	}
+	else
+	{
+		return 0;
+	}
+}
