@@ -13,7 +13,7 @@ using namespace std;
 #define red system("color CF");
 #define blue system("color 1F");
 #define green system("color A0");
-#define str cout<<"\n**************************************************\n";
+#define str cout<<"\n####################################\n";
 
 ofstream wfile;
 ifstream rfile;
