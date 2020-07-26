@@ -1,0 +1,6623 @@
+#pragma once
+#include<iostream>
+#include<string>
+#include <fstream>
+#include<vector>
+#include<Windows.h>
+using namespace std;
+
+
+#define cls system("cls");
+#define grey system("color B4");
+#define white system("Color F5");
+#define red system("color CF");
+#define blue system("color 1F");
+#define green system("color A0");
+#define str cout<<"\n**************************************************\n";
+
+ofstream wfile;
+ifstream rfile;
+
+//FUNCTION INITIALIZATION AREA
+
+void add_new_patient(string, string);
+void doctorlist(string, string);
+void receptionremove(string, string);
+void receptionappoint(string, string);
+void reception_remove_appoint(string, string);
+void patientlist(string, string);
+void reception_account(string, string, int);
+
+void addstaff(string, string);
+void deletestaff(string, string);
+void adminaccount(string, string);
+void retrieveusername_password(string, string);
+void view_staff_list(string, string);
+
+void addappoint(string, string, int, int, int);
+void viewappointment(string, string, int, int, int);
+void view_doctorcomment(string, string, int, int, int);
+void changedoctor(string, string, int, int, int);
+void pataccount(string, string, int, int, int);
+
+void set_date_month(string, string, int, int);
+void view_today_appoint(string, string, int, int);
+void view_all_appoint(string, string, int, int);
+void view_all_patients(string, string, int, int);
+void doc_view_all_appoint(string, string, int, int);
+void doc_view_all_patients(string, string, int, int);
+void doc_account(string, string, int, int);
+void pa_account(string, string, int, int);
+
+int usernamecheck(string);
+int passwordcheck(string);
+void readdata();
+void writedata();
+
+
+
+
+//STRUCTURES
+
+struct admin
+{
+	string user = "admin";
+	string pass = "admin123";
+	string name = "Administrator";
+}adm;
+
+struct patient
+{
+	string user = { 0 };
+	string pass = { 0 };
+	string id = { 0 };
+	string name = { 0 };
+	string comments = { 0 };
+
+	int patient_appoint[31] = { NULL };
+
+	int pos = 0;
+	int diag_size = 2;
+	vector<string> diagnostic;
+
+	int check = 0;
+
+	void getdata()
+	{
+		int numuser = 1, numpass = 1;
+		string us, ps;
+		cout << "ENTER NAME:  "; cin.ignore(); getline(cin, name);
+		cout << "ENTER ID:  "; cin >> id;
+		cout << "ENTER USERNAME:  "; cin >> us;
+		numuser = usernamecheck(us);
+		while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> us; numuser = usernamecheck(us); }
+		cout << "ENTER PASSWORD:  "; cin >> ps;
+		numpass = passwordcheck(ps);
+		while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> ps; numpass = passwordcheck(ps); }
+		cout << "ENTER PROBLEM DESCRIPTION:  "; cin.ignore(); getline(cin, comments);
+		user = us;
+		pass = ps;
+		check = 1;
+
+		str;
+		cout << "NAME:      " << name << endl
+			<< "ID:        " << id << endl
+			<< "USERNAME:  " << user << endl
+			<< "PASSWORD:  " << pass << endl;
+	}
+	void enterdiagnostic()
+	{
+		diag_size++;
+		diagnostic.resize(diag_size);
+		cout << "ENTER DIAGNOSIS (please enter date first):  \n"; getline(cin, diagnostic[pos], ';');
+
+		pos++;
+	}
+	void viewdiagnostic()
+	{
+		int op = 0, i = 0;
+		cout << "ENTRY NUMBER:  " << endl;
+		while (i < pos)
+		{
+			cout << i << endl;
+			i++;
+			op = -1;
+		}
+
+		if (op == -1)
+		{
+			cout << "CHOOSE ENTRY:  "; cin >> op; while (op<0 || op>pos) { cout << "ENTER! AGAIN:  "; cin >> op; }
+
+			str;
+			cout << "ENTRY NUMBER " << op << ":  \n" << diagnostic[op];
+		}
+		else
+		{
+			str;
+			cout << "NO ENTRY RECORD\n";
+		}
+	}
+	void viewappoint(int &a)
+	{
+		for (int j = 0; j < 31; j++)
+		{
+			if (patient_appoint[j] == 5 || patient_appoint[j] == 2 || patient_appoint[j] == 3 || patient_appoint[j] == 4 || patient_appoint[j] == 1)
+			{
+				cout << "Date:  " << j + 1 << endl;
+				a = 1;
+			}
+		}
+	}
+};
+
+struct personal_assistant
+{
+	string name;
+	string id;
+	string user;
+	string pass;
+
+	int date = 0;
+	string month;
+
+	int today_appoint[5];
+	int appoint[31][5] = { NULL };
+
+	int check = 0;
+
+	void getdata()
+	{
+		int numuser = 1, numpass = 1;
+		string us, ps;
+		cout << "ENTER NAME:  "; cin.ignore(); getline(cin, name);
+		cout << "ENTER ID:  "; cin >> id;
+		cout << "ENTER USERNAME:  "; cin >> us;
+		numuser = usernamecheck(us);
+		while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> us; numuser = usernamecheck(us); }
+		cout << "ENTER PASSWORD:  "; cin >> ps;
+		numpass = passwordcheck(ps);
+		while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> ps; numpass = passwordcheck(ps); }
+		user = us;
+		pass = ps;
+		check = 1;
+	}
+
+};
+
+struct doctor
+{
+	string name;
+	string id;
+	string user;
+	string pass;
+	string fieldname;
+
+	int docid;
+	int docfield;
+
+	int tot_patient = 0;
+
+	personal_assistant pa;
+
+	int pat_pos = 0;
+	int pat_size = 2;
+	vector<patient> pat;
+
+	int check = 0;
+
+	void getdata(string fldnme, int doctorid, int doctorfield)
+	{
+		int numuser = 1, numpass = 1;
+		string us, ps;
+		cout << "ENTER NAME:  "; cin.ignore(); getline(cin, name);
+		cout << "ENTER ID:  "; cin >> id;
+		cout << "ENTER USERNAME:  "; cin >> us;
+		numuser = usernamecheck(us);
+		while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> us; numuser = usernamecheck(us); }
+		cout << "ENTER PASSWORD:  "; cin >> ps;
+		numpass = passwordcheck(ps);
+		while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> ps; numpass = passwordcheck(ps); }
+
+		docid = doctorid;
+		docfield = doctorfield;
+		fieldname = fldnme;
+		user = us;
+		pass = ps;
+		check = 1;
+	}
+	void enterpatient()
+	{
+		pat_size += 1;
+		pat.resize(pat_size);
+
+		pat[pat_pos].getdata();
+
+		tot_patient++;
+		pat_pos++;
+	}
+	void pat_list(int &a)
+	{
+		for (int i = 0; i < pat_pos; i++)
+		{
+			if (pat[i].check == 1)
+			{
+				cout << i << ". " << pat[i].name << endl;
+				a = 1;
+			}
+		}
+	}
+	void remove_pat(int p_ar)
+	{
+		pat[p_ar].check = 0;
+		pat[p_ar].user = { 0 };
+		pat[p_ar].pass = { 0 };
+		pat[p_ar].name = { 0 };
+		pat[p_ar].id = { 0 };
+	}
+	void shift_pat(string user, string pass, string name, string id)
+	{
+		int q = -1;
+		for (int i = 0; i < pat_pos; i++)
+		{
+			if (pat[i].check == 0)
+			{
+				q = i;
+				break;
+			}
+		}
+		if (q == -1)
+		{
+			pat_size += 1;
+			pat.resize(pat_size);
+
+			pat[pat_pos].user = user;
+			pat[pat_pos].pass = pass;
+			pat[pat_pos].name = name;
+			pat[pat_pos].id = id;
+			pat[pat_pos].check = 1;
+
+			tot_patient++;
+			pat_pos++;
+		}
+		else
+		{
+			pat[q].user = user;
+			pat[q].pass = pass;
+			pat[q].name = name;
+			pat[q].id = id;
+			pat[q].check = 1;
+		}
+
+	}
+
+}ent[5], card[2], gyne[3], uro[3], surg[2], neuro[2], fam[5];
+
+struct recpetion
+{
+	string user;
+	string pass;
+	string name;
+	string id;
+
+	int check = 0;
+
+	void getdata()
+	{
+		int numuser = 1, numpass = 1;
+		string us, ps;
+
+		cout << "ENTER NAME:  "; cin.ignore(); getline(cin, name);
+		cout << "ENTER ID:  "; cin >> id;
+		cout << "ENTER USERNAME:  "; cin >> us;
+		numuser = usernamecheck(us);
+		while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> us; numuser = usernamecheck(us); }
+		cout << "ENTER PASSWORD:  "; cin >> ps;
+		numpass = passwordcheck(ps);
+		while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> ps; numpass = passwordcheck(ps); }
+		user = us;
+		pass = ps;
+		check = 1;
+	}
+
+}rec[5];
+
+
+
+
+
+
+//EXTRA FUNCTIONS
+int usernamecheck(string user)                                 // 1 means that the user entered is already taken
+{
+	for (int i = 0; i < 5; i++)
+	{
+		if (i < 5)
+		{
+			if (user == ent[i].user) { return 1; }
+			if (user == ent[i].pa.user) { return 1; }
+
+			for (int j = 0; j < ent[i].pat_pos; j++)
+			{
+				if (user == ent[i].pat[j].user) { return 1; }
+			}
+
+			if (user == fam[i].user) { return 1; }
+			if (user == fam[i].pa.user) { return 1; }
+
+			for (int j = 0; j < fam[i].pat_pos; j++)
+			{
+				if (user == fam[i].pat[j].user) { return 1; }
+			}
+
+		}
+
+		if (i < 2)
+		{
+			if (user == card[i].user) { return 1; }
+			if (user == card[i].pa.user) { return 1; }
+
+			for (int j = 0; j < card[i].pat_pos; j++)
+			{
+				if (user == card[i].pat[j].user) { return 1; }
+			}
+
+			if (user == surg[i].user) { return 1; }
+			if (user == surg[i].pa.user) { return 1; }
+
+			for (int j = 0; j < surg[i].pat_pos; j++)
+			{
+				if (user == surg[i].pat[j].user) { return 1; }
+			}
+
+			if (user == neuro[i].user) { return 1; }
+			if (user == neuro[i].pa.user) { return 1; }
+
+			for (int j = 0; j < neuro[i].pat_pos; j++)
+			{
+				if (user == neuro[i].pat[j].user) { return 1; }
+			}
+		}
+
+		if (i < 3)
+		{
+			if (user == gyne[i].user) { return 1; }
+			if (user == gyne[i].pa.user) { return 1; }
+
+			for (int j = 0; j < gyne[i].pat_pos; j++)
+			{
+				if (user == gyne[i].pat[j].user) { return 1; }
+			}
+
+			if (user == uro[i].user) { return 1; }
+			if (user == uro[i].pa.user) { return 1; }
+
+			for (int j = 0; j < uro[i].pat_pos; j++)
+			{
+				if (user == uro[i].pat[j].user) { return 1; }
+			}
+		}
+
+		if (i < 5)
+		{
+			if (user == rec[i].user) { return 1; }
+		}
+
+		if (user == adm.user) { return 1; }
+	}
+
+	return 0;
+}
+int passwordcheck(string pass)                                 // 1 means that the password entered is already taken
+{
+	for (int i = 0; i < 5; i++)
+	{
+		if (i < 5)
+		{
+			if (pass == ent[i].pass) { return 1; }
+			if (pass == ent[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < ent[i].pat_pos; j++)
+			{
+				if (pass == ent[i].pat[j].pass) { return 1; }
+			}
+
+			if (pass == fam[i].pass) { return 1; }
+			if (pass == fam[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < fam[i].pat_pos; j++)
+			{
+				if (pass == fam[i].pat[j].pass) { return 1; }
+			}
+
+		}
+
+		if (i < 2)
+		{
+			if (pass == card[i].pass) { return 1; }
+			if (pass == card[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < card[i].pat_pos; j++)
+			{
+				if (pass == card[i].pat[j].pass) { return 1; }
+			}
+
+			if (pass == surg[i].pass) { return 1; }
+			if (pass == surg[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < surg[i].pat_pos; j++)
+			{
+				if (pass == surg[i].pat[j].pass) { return 1; }
+			}
+
+			if (pass == neuro[i].pass) { return 1; }
+			if (pass == neuro[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < neuro[i].pat_pos; j++)
+			{
+				if (pass == neuro[i].pat[j].pass) { return 1; }
+			}
+		}
+
+		if (i < 3)
+		{
+			if (pass == gyne[i].pass) { return 1; }
+			if (pass == gyne[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < gyne[i].pat_pos; j++)
+			{
+				if (pass == gyne[i].pat[j].pass) { return 1; }
+			}
+
+			if (pass == uro[i].pass) { return 1; }
+			if (pass == uro[i].pa.pass) { return 1; }
+
+			for (int j = 0; j < uro[i].pat_pos; j++)
+			{
+				if (pass == uro[i].pat[j].pass) { return 1; }
+			}
+		}
+
+		if (i < 5)
+		{
+			if (pass == rec[i].pass) { return 1; }
+		}
+
+		if (pass == adm.pass) { return 1; }
+	}
+
+	return 0;
+}
+void refer(string username, string password, int check[], int &patfield)                // we store the number of struct e.g 1 is ent 2 is card and this goes on in orderly fashion till pa structs, rec struct and pat struct. so in the 0th position of array we recognize th etype of struct and in the 1st position we recognize the array of that struct
+{                                                                                    // then we place the struct code in the first position of check array and the array number of the struct in the second position
+
+	check[0] = 99; check[1] = 99;   patfield = 99;	                                 // the check has the evalue of 99 in both positions 
+
+	if (username == adm.user && password == adm.pass)                              // in the case of admin the first position off array will have 666 value in it
+	{
+		check[0] = 666;
+	}
+
+	for (int i = 0; i < 5; i++)
+	{
+		if (username == ent[i].pa.user && password == ent[i].pa.pass)
+		{
+			check[0] = 8;
+			check[1] = i;
+		}
+		if (username == ent[i].user && password == ent[i].pass)
+		{
+			check[0] = 1;
+			check[1] = i;
+		}
+		for (int j = 0; j < ent[i].pat_pos; j++)
+		{
+			if (username == ent[i].pat[j].user && password == ent[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 1;
+			}
+		}
+
+		if (username == fam[i].pa.user && password == fam[i].pa.pass)
+		{
+			check[0] = 14;
+			check[1] = i;
+		}
+		if (username == fam[i].user && password == fam[i].pass)
+		{
+			check[0] = 7;
+			check[1] = i;
+		}
+		for (int j = 0; j < fam[i].pat_pos; j++)
+		{
+			if (username == fam[i].pat[j].user && password == fam[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 7;
+			}
+		}
+	}
+
+	for (int i = 0; i < 2; i++)
+	{
+		if (username == card[i].user && password == card[i].pass)
+		{
+			check[0] = 2;
+			check[1] = i;
+		}
+		if (username == card[i].pa.user && password == card[i].pa.pass)
+		{
+			check[0] = 9;
+			check[1] = i;
+		}
+		for (int j = 0; j < card[i].pat_pos; j++)
+		{
+			if (username == card[i].pat[j].user && password == card[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 2;
+			}
+		}
+
+
+		if (username == surg[i].user && password == surg[i].pass)
+		{
+			check[0] = 5;
+			check[1] = i;
+		}
+		if (username == surg[i].pa.user && password == surg[i].pa.pass)
+		{
+			check[0] = 12;
+			check[1] = i;
+		}
+		for (int j = 0; j < surg[i].pat_pos; j++)
+		{
+			if (username == surg[i].pat[j].user && password == surg[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 5;
+			}
+		}
+
+
+		if (username == neuro[i].user && password == neuro[i].pass)
+		{
+			check[0] = 6;
+			check[1] = i;
+		}
+		if (username == neuro[i].pa.user && password == neuro[i].pa.pass)
+		{
+			check[0] = 13;
+			check[1] = i;
+		}
+		for (int j = 0; j < neuro[i].pat_pos; j++)
+		{
+			if (username == neuro[i].pat[j].user && password == neuro[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 6;
+			}
+		}
+
+
+
+	}
+
+	for (int i = 0; i < 3; i++)
+	{
+		if (username == gyne[i].user && password == gyne[i].pass)
+		{
+			check[0] = 3;
+			check[1] = i;
+		}
+		if (username == gyne[i].pa.user && password == gyne[i].pa.pass)
+		{
+			check[0] = 10;
+			check[1] = i;
+		}
+		for (int j = 0; j < gyne[i].pat_pos; j++)
+		{
+			if (username == gyne[i].pat[j].user && password == gyne[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 3;
+			}
+		}
+
+
+
+		if (username == uro[i].user && password == uro[i].pass)
+		{
+			check[0] = 4;
+			check[1] = i;
+		}
+		if (username == uro[i].pa.user && password == uro[i].pa.pass)
+		{
+			check[0] = 11;
+			check[1] = i;
+		}
+		for (int j = 0; j < uro[i].pat_pos; j++)
+		{
+			if (username == uro[i].pat[j].user && password == uro[i].pat[j].pass)
+			{
+				check[0] = i;
+				check[1] = j;
+				patfield = 4;
+			}
+		}
+
+
+
+	}
+
+
+	for (int i = 0; i < 5; i++)
+	{
+		if (username == rec[i].user && password == rec[i].pass)
+		{
+			check[0] = 15;
+			check[1] = i;
+		}
+	}
+
+}
+void writedata()
+{
+	wfile.open("hospitaldata.txt");
+	for (int i = 0; i < 5; i++)
+	{
+		if (i < 5)
+		{
+			wfile.write((char *)&ent[i], sizeof(ent[i]));
+			wfile.write((char *)&fam[i], sizeof(fam[i]));
+			wfile.write((char *)&rec[i], sizeof(rec[i]));
+		}
+		if (i < 3)
+		{
+			wfile.write((char *)&gyne[i], sizeof(gyne[i]));
+			wfile.write((char *)&uro[i], sizeof(uro[i]));
+		}
+		if (i < 2)
+		{
+			wfile.write((char *)&card[i], sizeof(card[i]));
+			wfile.write((char *)&surg[i], sizeof(surg[i]));
+			wfile.write((char *)&neuro[i], sizeof(neuro[i]));
+		}
+	}
+
+	wfile.write((char *)&adm, sizeof(adm));
+
+	wfile.close();
+}
+void readdata()
+{
+	rfile.open("hospitaldata.txt");
+	for (int i = 0; i < 5; i++)
+	{
+
+		if (i < 5)
+		{
+			rfile.read((char *)&ent[i], sizeof(ent[i]));
+			rfile.read((char *)&fam[i], sizeof(fam[i]));
+			rfile.read((char *)&rec[i], sizeof(rec[i]));
+		}
+		if (i < 3)
+		{
+			rfile.read((char *)&gyne[i], sizeof(gyne[i]));
+			rfile.read((char *)&uro[i], sizeof(uro[i]));
+		}
+		if (i < 2)
+		{
+			rfile.read((char *)&card[i], sizeof(card[i]));
+			rfile.read((char *)&surg[i], sizeof(surg[i]));
+			rfile.read((char *)&neuro[i], sizeof(neuro[i]));
+		}
+	}
+
+	rfile.read((char *)&adm, sizeof(adm));
+
+	rfile.close();
+}
+
+
+
+//ADMIN MENU AND DATABASE
+
+void adminmenu(string username, string password)
+{
+	white;
+	int a;
+
+	cout << "************************************ " << adm.name << " *****************************************************" << "\n \n \n";
+
+
+
+	cout << "\t\t\t\t     1-  PRESS 1 TO ADD USER" << "\n\n"
+		<< "\t\t\t\t     2-  PRESS 2 TO DELETE USER" << "\n\n"
+		<< "\t\t\t\t     3-  PRESS 3 TO RETRIEVE USERNAME / PASSWORD" << "\n\n"
+		<< "\t\t\t\t     4-  PRESS 4 TO VIEW STAFF LIST" << "\n\n"
+		<< "\t\t\t\t     5-  PRESS 5 FOR ACCOUNT SETTINGS" << "\n\n"
+		<< "\t\t\t\t     6-  PRESS 6 TO LOGOUT" << "\n\n\n"
+		<< "\t\t\t\t     PRESS YOUR OPTION: "; cin >> a;  while (a < 1 || a>6) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> a; }
+
+	if (a == 1)
+	{
+		cls;
+		addstaff(username, password);
+	}
+	else if (a == 2)
+	{
+		cls;
+		deletestaff(username, password);
+
+	}
+	else if (a == 3)
+	{
+		cls;
+		retrieveusername_password(username, password);
+	}
+	else if (a == 4)
+	{
+		cls;
+		view_staff_list(username, password);
+	}
+	else if (a == 5)
+	{
+		cls;
+		adminaccount(username, password);
+	}
+	else if (a == 6)
+	{
+
+	}
+
+}
+
+void addstaff(string username, string password)
+{
+
+	int q = 0, a = 0, numuser = 0, numpass = 0;
+	string name = { 0 }, fieldname = { 0 }, user = { 0 }, pass = { 0 }, id = { 0 };
+	int docid = 0, docfield = 0;
+
+	cout << "\t\t\t\t     1-  PRESS 1 TO ADD DOCTOR" << "\n\n"
+		<< "\t\t\t\t     2-  PRESS 2 TO ADD PERSONAL ASSISTANT" << "\n\n"
+		<< "\t\t\t\t     3-  PRESS 3 TO ADD RECEPTIONIST" << "\n\n";
+	cout << "\t\t\t\t     PRESS YOUR OPTION:  "; cin >> q; while (q < 1 || q>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> q; }
+
+
+	cls;
+	int  c = 0;
+	if (q == 1)
+	{
+		str;
+		int i;
+		cout << "CHOOSE FROM THE LIST:  \n\n"
+			<< "1. PRESS 1 FOR AN ENT SPECIALIST\t\t2. PRESS 2 FOR A CARDIOLOGIST\t\t3. PRESS 3 FOR A GYNECOLOGIST\n\n"
+			<< "4. PRESS 4 FOR AN UROLOGIST\t\t\t5. PRESS 5 FOR A SURGEON\t\t6. PRESS 6 FOR A NEUROLOGIST\n\n"
+			<< "7. PRESS 7 FOR A FAMILY PHYSICIAN\n\n" << "PRESS YOUR OPTION:  "; cin >> a; while (a < 1 || a>7) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> a; }
+
+		str;
+
+		if (a == 1)
+		{
+			int size = 5;
+			string fldname = "EAR NOSE AND THROAT";
+			for (i = 0; i < size; i++)
+			{
+				if (ent[i].check == 0)
+				{
+
+					ent[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+		else if (a == 2)
+		{
+			int size = 2;
+			string fldname = "CARDIOLOGIST";
+			for (i = 0; i < size; i++)
+			{
+				if (card[i].check == 0)
+				{
+
+					card[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+		else if (a == 3)
+		{
+			int size = 3;
+			string fldname = "GYNECOLOGIST";
+			for (i = 0; i < size; i++)
+			{
+				if (gyne[i].check == 0)
+				{
+
+					gyne[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+		else if (a == 4)
+		{
+			int size = 3;
+			string fldname = "UROLOGIST";
+			for (i = 0; i < size; i++)
+			{
+				if (uro[i].check == 0)
+				{
+
+					uro[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+		else if (a == 5)
+		{
+			int size = 2;
+			string fldname = "SURGEON";
+			for (i = 0; i < size; i++)
+			{
+				if (surg[i].check == 0)
+				{
+
+					surg[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+		else if (a == 6)
+		{
+			int size = 2;
+			string fldname = "NEUROLOGIST";
+			for (i = 0; i < size; i++)
+			{
+				if (neuro[i].check == 0)
+				{
+
+					neuro[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+		else if (a == 7)
+		{
+
+			int size = 5;
+			string fldname = "FAMILY PHYSICIAN";
+			for (i = 0; i < size; i++)
+			{
+				if (fam[i].check == 0)
+				{
+
+					fam[i].getdata(fldname, i, a);
+					break;
+				}
+			}
+			if (i == size) { cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+		}
+
+
+		if (c != 99)
+		{
+			cout << "ACCOUNT CREATED";
+		}
+
+	}
+	else if (q == 2)
+	{
+		str;
+		int b;
+		int i;
+
+		cout << "CHOOSE FROM THE LIST:  \n\n"
+			<< "1. PRESS 1 FOR AN ENT P.A\t\t2. PRESS 2 FOR A CARDIOLOGIST P.A\t\t3. PRESS 3 FOR A GYNECOLOGIST P.A\n\n"
+			<< "4. PRESS 4 FOR AN UROLOGIST P.A\t\t\t5. PRESS 5 FOR A SURGEON P.A\t\t6. PRESS 6 FOR A NEUROLOGIST P.A\n\n"
+			<< "7. PRESS 7 FOR A FAMILY PHYSICIAN P.A\n\n" << "PRESS YOUR OPTION:  "; cin >> a; while (a < 1 || a>7) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> a; }
+
+		str;
+
+		if (a == 1)
+		{
+			int size = 5;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (ent[i].check == 1 && ent[i].pa.check == 0)
+				{
+					cout << i << ". " << ent[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (ent[b].check == 1 && ent[i].pa.check == 0)
+				{
+					ent[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+
+		}
+		else if (a == 2)
+		{
+			int size = 2;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (card[i].check == 1 && card[i].pa.check == 0)
+				{
+					cout << i << ". " << card[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (card[b].check == 1 && card[i].pa.check == 0)
+				{
+					card[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+		}
+		else if (a == 3)
+		{
+			int size = 3;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (gyne[i].check == 1 && gyne[i].pa.check == 0)
+				{
+					cout << i << ". " << gyne[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (gyne[b].check == 1 && gyne[i].pa.check == 0)
+				{
+					gyne[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+		}
+		else if (a == 4)
+		{
+			int size = 3;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (uro[i].check == 1 && uro[i].pa.check == 0)
+				{
+					cout << i << ". " << uro[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (uro[b].check == 1 && uro[i].pa.check == 0)
+				{
+					uro[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+		}
+		else if (a == 5)
+		{
+			int size = 2;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (surg[i].check == 1 && surg[i].pa.check == 0)
+				{
+					cout << i << ". " << surg[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (surg[b].check == 1 && surg[i].pa.check == 0)
+				{
+					surg[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+		}
+		else if (a == 6)
+		{
+			int size = 2;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (neuro[i].check == 1 && neuro[i].pa.check == 0)
+				{
+					cout << i << ". " << neuro[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+
+
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (neuro[b].check == 1 && neuro[i].pa.check == 0)
+				{
+					neuro[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+		}
+		else if (a == 7)
+		{
+
+			int size = 5;
+			int ch = 0;
+
+			for (i = 0; i < size; i++)
+			{
+				if (fam[i].check == 1 && fam[i].pa.check == 0)
+				{
+					cout << i << ". " << fam[i].name << "\n\n";
+					ch = 1;
+				}
+			}
+
+			if (ch == 1)
+			{
+				cout << "CHOOSE YOUR DOCTOR :  "; cin >> b; while (b<0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+				str;
+
+
+				if (fam[b].check == 1 && fam[i].pa.check == 0)
+				{
+					fam[b].pa.getdata();
+				}
+				else
+				{
+					cout << "THIS USER IS NOT REGISTERED\n";
+					c = 99;
+				}
+			}
+			else
+			{
+				cout << "NO DOCTORS PRESENT\n"; c = 99;
+			}
+		}
+
+
+		if (c != 99)
+		{
+			cout << "ACCOUNT CREATED";
+		}
+	}
+	else if (q == 3)
+	{
+		int i;
+		for (i = 0; i < 5; i++)
+		{
+			if (rec[i].check == 0)
+			{
+				rec[i].getdata();
+				break;
+			}
+		}
+		if (i == 5) { str; cout << "MAXIMUM CAPACITY!\n"; c = 99; }
+
+		if (c != 99)
+		{
+			cout << "ACCOUNT CREATED";
+		}
+	}
+
+
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO ADD NEW USER\n"
+		<< "2. PRESS 2 FOR DELETE USER\n"
+		<< "3. PRESS 3 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { addstaff(username, password); }
+	else if (r == 2) { deletestaff(username, password); }
+	else if (r == 3) { adminmenu(username, password); }
+}
+void deletestaff(string username, string password)
+{
+	string usr, pass;
+	int check[2] = { -1 }, patfield;
+	int ar, i = 0;
+	cout << "enter the username and password of the user you want to remove\n";
+	cout << "ENTER USERS USERNAME:  "; cin >> usr;
+	cout << "ENTER USERS PASSWORD:  "; cin >> pass;
+
+	str;
+	refer(usr, pass, check, patfield);
+	ar = check[1];
+	if (check[0] != 99)
+	{
+		if (check[0] == 1) { ent[ar].check = 0; i = 9; ent[ar].user = { NULL }; ent[ar].pass = { NULL }; }
+		else if (check[0] == 2) { card[ar].check = 0; i = 9;  card[ar].user = { NULL }; card[ar].pass = { NULL }; }
+		else if (check[0] == 3) { gyne[ar].check = 0; i = 9;  gyne[ar].user = { NULL }; gyne[ar].pass = { NULL }; }
+		else if (check[0] == 4) { uro[ar].check = 0; i = 9;  uro[ar].user = { NULL }; uro[ar].pass = { NULL }; }
+		else if (check[0] == 5) { surg[ar].check = 0; i = 9;  surg[ar].user = { NULL }; surg[ar].pass = { NULL }; }
+		else if (check[0] == 6) { neuro[ar].check = 0; i = 9; neuro[ar].user = { NULL }; neuro[ar].pass = { NULL }; }
+		else if (check[0] == 7) { fam[ar].check = 0; i = 9;  fam[ar].user = { NULL }; fam[ar].pass = { NULL }; }
+
+		else if (check[0] >= 8 || check[0] <= 14) { cout << "P.A ACCOUNT DELETION NOT ALLOWED\n"; }
+
+		else if (check[0] == 15) { rec[ar].check = 0; i = 9;  rec[ar].user = { NULL }; rec[ar].pass = { NULL }; }
+	}
+	else
+	{
+		cout << "\nWRONG USERNAME OR PASSWORD\n";
+	}
+	if (i == 9) { cout << "ACCOUNT DELETED"; }
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO DELETE USER\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { deletestaff(username, password); }
+	else if (r == 2) { adminmenu(username, password); }
+
+}
+void view_staff_list(string username, string password)
+{
+	int op;
+	cout << "\t\t\t\t1. PRESS 1 TO VIEW DOCTORS" << endl
+		<< "\t\t\t\t2. PRESS 2 TO VIEW PERSONAL ASSISTANTS" << endl
+		<< "\t\t\t\t3. PRESS 3 TO VIEW RECEPTIONISTS" << endl
+		<< "\t\t\t\tPRESS OPTION:  "; cin >> op; while (op < 1 || op>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> op; }
+
+	if (op == 1)
+	{
+		str;
+		cout << "ENT SPECIALISTS:\n";
+		for (int i = 0; i < 5; i++)
+		{
+			if (ent[i].check == 1)
+			{
+				cout << i << ". " << ent[i].name << endl;
+			}
+		}
+
+		cout << "\nCARDIOLOGISTS:\n";
+		for (int i = 0; i < 2; i++)
+		{
+			if (card[i].check == 1)
+			{
+				cout << i << ". " << card[i].name << endl;
+			}
+		}
+
+		cout << "\nGYNECOLOGISTS:\n";
+		for (int i = 0; i < 3; i++)
+		{
+			if (gyne[i].check == 1)
+			{
+				cout << i << ". " << gyne[i].name << endl;
+			}
+		}
+
+		cout << "\nUROLOGISTS:\n";
+		for (int i = 0; i < 3; i++)
+		{
+			if (uro[i].check == 1)
+			{
+				cout << i << ". " << uro[i].name << endl;
+			}
+		}
+
+		cout << "\nSURGEON:\n";
+		for (int i = 0; i < 2; i++)
+		{
+			if (surg[i].check == 1)
+			{
+				cout << i << ". " << surg[i].name << endl;
+			}
+		}
+
+		cout << "\nNEUROLOGISTS:\n";
+		for (int i = 0; i < 2; i++)
+		{
+			if (neuro[i].check == 1)
+			{
+				cout << i << ". " << neuro[i].name << endl;
+			}
+		}
+
+		cout << "\nFAMILY PHYSICIAN:\n";
+		for (int i = 0; i < 5; i++)
+		{
+			if (fam[i].check == 1)
+			{
+				cout << i << ". " << fam[i].name << endl;
+			}
+		}
+	}
+	else if (op == 2)
+	{
+		str;
+
+		cout << "ENT P.A:\n";
+		for (int i = 0; i < 5; i++)
+		{
+			if (ent[i].check == 1 && ent[i].pa.check == 1)
+			{
+				cout << i << ". " << ent[i].pa.name << endl;
+			}
+		}
+
+		cout << "\nCARDIOLOGIST P.A:\n";
+		for (int i = 0; i < 2; i++)
+		{
+			if (card[i].check == 1 && card[i].pa.check == 1)
+			{
+				cout << i << ". " << card[i].pa.name << endl;
+			}
+		}
+
+		cout << "\nGYNECOLOGIST P.A:\n";
+		for (int i = 0; i < 3; i++)
+		{
+			if (gyne[i].check == 1 && gyne[i].pa.check == 1)
+			{
+				cout << i << ". " << gyne[i].pa.name << endl;
+			}
+		}
+
+		cout << "\nUROLOGIST P.A:\n";
+		for (int i = 0; i < 3; i++)
+		{
+			if (uro[i].check == 1 && uro[i].pa.check == 1)
+			{
+				cout << i << ". " << uro[i].pa.name << endl;
+			}
+		}
+
+		cout << "\nSURGEON P.A:\n";
+		for (int i = 0; i < 2; i++)
+		{
+			if (surg[i].check == 1 && surg[i].pa.check == 1)
+			{
+				cout << i << ". " << surg[i].pa.name << endl;
+			}
+		}
+
+		cout << "\nNEUROLOGIST P.A:\n";
+		for (int i = 0; i < 2; i++)
+		{
+			if (neuro[i].check == 1 && neuro[i].pa.check == 1)
+			{
+				cout << i << ". " << neuro[i].pa.name << endl;
+			}
+		}
+
+		cout << "\nFAMILY PHYSICIAN P.A:\n";
+		for (int i = 0; i < 5; i++)
+		{
+			if (fam[i].check == 1 && fam[i].pa.check == 1)
+			{
+				cout << i << ". " << fam[i].pa.name << endl;
+			}
+		}
+
+	}
+	else if (op == 3)
+	{
+		str;
+		cout << "RECEPTIONIST:  \n";
+		for (int i = 0; i < 5; i++)
+		{
+			if (rec[i].check == 1)
+			{
+				cout << i << ". " << rec[i].name << endl;
+			}
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW LIST AGAIN\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { view_staff_list(username, password); }
+	else if (r == 2) { adminmenu(username, password); }
+}
+void adminaccount(string username, string password)
+{
+	string user, pass, name;
+	int numuser = 0, numpass = 0;
+	cout << "\n\nENTER USERNAME:  "; cin >> user;
+	cout << "\nENTER PASSWORD:  "; cin >> pass;
+	if (user == username && pass == password)
+	{
+		cls;
+		int ch;
+
+		cout << "1. PRESS 1 TO CHANGE USERNAME\n"
+			<< "2. PRESS 2 TO CHANGE PASSWORD\n"
+			<< "3. PRESS 3 TO UPDATE NAME\n"
+			<< "PRESS OPTION:  "; cin >> ch; while (ch < 1 || ch>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> ch; }
+
+		if (ch == 1)
+		{
+			cout << "CURRENT USERNAME:  " << username << endl;
+			cout << "ENTER NEW USERNAME:  "; cin >> user;
+			numuser = usernamecheck(user);
+			while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> user; numuser = usernamecheck(user); }
+			username = user;
+			adm.user = user;
+			cout << "YOUR NEW USERNAME IS:  " << user;
+		}
+		else if (ch == 2)
+		{
+			cout << "CURRENT PASSWORD:  " << password << endl;
+			cout << "ENTER NEW PASSWORD:  "; cin >> pass;
+			numpass = passwordcheck(pass);
+			while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> pass; numpass = passwordcheck(pass); }
+			password = pass;
+			adm.pass = pass;
+			cout << "YOUR NEW PASSWORD IS:  " << pass;
+		}
+		else if (ch == 3)
+		{
+			cout << "CURRENT NAME:  " << adm.name << endl;
+			cout << "UPDATE NAME:  "; cin.ignore(); getline(cin, name);
+			adm.name = name;
+			cout << "UPDATED NAME IS:  " << adm.name;
+		}
+	}
+	else
+	{
+		cout << "WRONG USERNAME OR PASSWORD\n";
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 FOR ACCOUNT SETTING\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { adminaccount(username, password); }
+	else if (r == 2) { adminmenu(username, password); }
+}
+void retrieveusername_password(string username, string password)
+{
+	int op;
+	string id, pass, user;
+	cout << "\t\t\t\t1. PRESS 1 TO RETRIEVE USERNAME\n"
+		<< "\t\t\t\t2. PRESS 2 TO RETRIEVE PASSWORD\n"
+		<< "\t\t\t\tPRESS OPTION:  "; cin >> op; while (op < 1 || op>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> op; }
+	int c = 0;
+	if (op == 1)
+	{
+		cout << "ENTER ID:        "; cin >> id;
+		cout << "ENTER PASSWORD:  "; cin >> pass;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (i < 5)
+			{
+				if (pass == ent[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << ent[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == fam[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << fam[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == ent[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << ent[i].pa.user << endl;
+					c = 1; break;
+				}
+				else if (pass == fam[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << fam[i].pa.user << endl;
+					c = 1; break;
+				}
+				else if (pass == rec[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << rec[i].user << endl;
+					c = 1; break;
+				}
+
+			}
+
+			if (i < 3)
+			{
+				if (pass == gyne[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << gyne[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == uro[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << uro[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == gyne[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << gyne[i].pa.user << endl;
+					c = 1; break;
+				}
+				else if (pass == uro[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << uro[i].pa.user << endl;
+					c = 1; break;
+				}
+			}
+
+			if (i < 2)
+			{
+				if (pass == neuro[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << neuro[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == surg[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << surg[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == neuro[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << neuro[i].pa.user << endl;
+					c = 1; break;
+				}
+				else if (pass == surg[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << surg[i].pa.user << endl;
+					c = 1; break;
+				}
+				else if (pass == card[i].pass)
+				{
+					cout << "YOUR USERNAME IS:  " << card[i].user << endl;
+					c = 1; break;
+				}
+				else if (pass == card[i].pa.pass)
+				{
+					cout << "YOUR USERNAME IS:  " << card[i].pa.user << endl;
+					c = 1; break;
+				}
+			}
+		}
+
+		if (c != 1)
+		{
+			cout << "WRONG PASSWORD\n";
+		}
+
+	}
+	else if (op == 2)
+	{
+		cout << "ENTER ID:        "; cin >> id;
+		cout << "ENTER USERNAME:  "; cin >> user;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (i < 5)
+			{
+				if (user == ent[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << ent[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == fam[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << fam[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == ent[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << ent[i].pa.pass << endl;
+					c = 1; break;
+				}
+				else if (user == fam[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << fam[i].pa.pass << endl;
+					c = 1; break;
+				}
+				else if (user == rec[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << rec[i].pass << endl;
+					c = 1; break;
+				}
+
+			}
+
+			if (i < 3)
+			{
+				if (user == gyne[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << gyne[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == uro[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << uro[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == gyne[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << gyne[i].pa.pass << endl;
+					c = 1; break;
+				}
+				else if (user == uro[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << uro[i].pa.pass << endl;
+					c = 1; break;
+				}
+			}
+
+			if (i < 2)
+			{
+				if (user == neuro[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << neuro[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == surg[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << surg[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == neuro[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << neuro[i].pa.pass << endl;
+					c = 1; break;
+				}
+				else if (user == surg[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << surg[i].pa.pass << endl;
+					c = 1; break;
+				}
+				else if (user == card[i].user)
+				{
+					cout << "YOUR PASSWORD IS:  " << surg[i].pass << endl;
+					c = 1; break;
+				}
+				else if (user == card[i].pa.user)
+				{
+					cout << "YOUR PASSWORD IS:  " << neuro[i].pa.pass << endl;
+					c = 1; break;
+				}
+			}
+		}
+
+		if (c != 1)
+		{
+			cout << "WRONG USERNAME\n";
+		}
+
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO RETRIEVE INFORMATION\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { retrieveusername_password(username, password); }
+	else if (r == 2) { adminmenu(username, password); }
+}
+
+
+
+
+//RECPTION MENU AND DATABASE
+void receptionmenu(string username, string password)
+{
+	grey;
+	int a, b;
+	for (int i = 0; i<5; i++)
+	{
+		if (password == rec[i].pass)
+		{
+			cout << "************************************ " << rec[i].name << " *****************************************************" << "\n \n \n";
+			b = i;
+		}
+	}
+
+	cout << "\t\t\t\t     1-  PRESS 1 TO ADD A NEW PATIENT" << "\n\n"       // CAN ALSO ADD APOINTMENT IF THE NEW PATIENT WANTS TO 
+		<< "\t\t\t\t     2-  PRESS 2 TO ADD APPOINTMENT" << "\n\n"
+		<< "\t\t\t\t     3-  PRESS 3 TO REMOVE APPOINTMENT" << "\n\n"
+		<< "\t\t\t\t     4-  PRESS 4 TO VIEW LIST OF PATIENTS" << "\n\n"
+		<< "\t\t\t\t     5-  PRESS 5 TO VIEW LIST OF DOCTORS" << "\n\n"
+		<< "\t\t\t\t     6-  PRESS 6 FOR ACCOUNT SETTINGS" << "\n\n"
+		<< "\t\t\t\t     7-  PRESS 7 TO LOGOUT" << "\n\n\n"
+		<< "\t\t\t\t     PRESS YOUR OPTION: "; cin >> a;  while (a < 1 || a>7) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> a; }
+
+	if (a == 1)
+	{
+		cls;
+		add_new_patient(username, password);
+	}
+	else if (a == 2)
+	{
+		cls;
+		receptionappoint(username, password);
+	}
+	else if (a == 3)
+	{
+		cls;
+		reception_remove_appoint(username, password);
+	}
+	else if (a == 4)
+	{
+		cls;
+		patientlist(username, password);
+	}
+	else if (a == 5)
+	{
+		cls;
+		doctorlist(username, password);
+	}
+	else if (a == 6)
+	{
+		cls;
+		reception_account(username, password, b);
+	}
+	else if (a == 7)
+	{
+
+	}
+
+}
+
+void add_new_patient(string username, string password)
+{
+	grey;
+	int a = 0, b = 0, c = 0;
+	string name, id, us, ps, record;
+	int q, w;
+	cout << "CHOOSE FROM THE LIST:  \n\n"
+		<< "1. PRESS 1 FOR AN ENT SPECIALIST\t\t2. PRESS 2 FOR A CARDIOLOGIST\t\t3. PRESS 3 FOR A GYNECOLOGIST\n\n"
+		<< "4. PRESS 4 FOR AN UROLOGIST\t\t\t5. PRESS 5 FOR A SURGEON\t\t6. PRESS 6 FOR A NEUROLOGIST\n\n"
+		<< "7. PRESS 7 FOR A FAMILY PHYSICIAN\n\n" << "PRESS YOUR OPTION:  "; cin >> a; while (a < 1 || a>7) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> a; }
+
+	str;
+
+	if (a == 1)
+	{
+
+		int size = 5;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (ent[i].check == 1)
+			{
+				cout << i << ". " << ent[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+
+			if (ent[b].check == 1)
+			{
+				ent[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+	else if (a == 2)
+	{
+		int size = 2;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (card[i].check == 1)
+			{
+				cout << i << ". " << card[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+			if (card[b].check == 1)
+			{
+				card[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+	else if (a == 3)
+	{
+		int size = 3;
+		for (int i = 0; i < size; i++)
+		{
+			if (gyne[i].check == 1)
+			{
+				cout << i << ". " << gyne[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+			if (gyne[b].check == 1)
+			{
+				gyne[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+	else if (a == 4)
+	{
+		int size = 3;
+		for (int i = 0; i < size; i++)
+		{
+			if (uro[i].check == 1)
+			{
+				cout << i << ". " << uro[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+			if (uro[b].check == 1)
+			{
+				uro[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+	else if (a == 5)
+	{
+		int size = 2;
+		for (int i = 0; i < size; i++)
+		{
+			if (surg[i].check == 1)
+			{
+				cout << i << ". " << surg[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+			if (surg[b].check == 1)
+			{
+				surg[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+	else if (a == 6)
+	{
+		int size = 2;
+		for (int i = 0; i < size; i++)
+		{
+			if (neuro[i].check == 1)
+			{
+				cout << i << ". " << neuro[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+			if (neuro[b].check == 1)
+			{
+				neuro[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+	else if (a == 7)
+	{
+
+		int size = 5;
+		for (int i = 0; i < size; i++)
+		{
+			if (fam[i].check == 1)
+			{
+				cout << i << ". " << fam[i].name << "\n\n";
+				c = 1;
+			}
+		}
+		if (c == 1)
+		{
+			cout << "PRESS OPTION :  "; cin >> b; while (b < 0 || b>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> b; }
+
+			str;
+			if (fam[b].check == 1)
+			{
+				fam[b].enterpatient();
+			}
+			else
+			{
+				cout << "DOCTOR DOES NOT EXIST\n";
+			}
+		}
+		else
+		{
+			cout << "NO DOCTOR PRESENT\n";
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO ADD ANOTHER PATIENT\n"
+		<< "2. PRESS 2 TO ADD APOINTMENT\n"
+		<< "3. PRESS 3 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { add_new_patient(username, password); }
+	else if (r == 2) { receptionappoint(username, password); }
+	else if (r == 3) { receptionmenu(username, password); }
+}
+void doctorlist(string username, string password)
+{
+	grey;
+	cout << "ENT SPECIALISTS:\n";
+	for (int i = 0; i < 5; i++)
+	{
+		if (ent[i].check == 1)
+		{
+			cout << i << ". " << ent[i].name << endl;
+		}
+	}
+
+	cout << "\nCARDIOLOGISTS:\n";
+	for (int i = 0; i < 2; i++)
+	{
+		if (card[i].check == 1)
+		{
+			cout << i << ". " << card[i].name << endl;
+		}
+	}
+
+	cout << "\nGYNECOLOGISTS:\n";
+	for (int i = 0; i < 3; i++)
+	{
+		if (gyne[i].check == 1)
+		{
+			cout << i << ". " << gyne[i].name << endl;
+		}
+	}
+
+	cout << "\nUROLOGISTS:\n";
+	for (int i = 0; i < 3; i++)
+	{
+		if (uro[i].check == 1)
+		{
+			cout << i << ". " << uro[i].name << endl;
+		}
+	}
+
+	cout << "\nSURGEON:\n";
+	for (int i = 0; i < 2; i++)
+	{
+		if (surg[i].check == 1)
+		{
+			cout << i << ". " << surg[i].name << endl;
+		}
+	}
+
+	cout << "\nNEUROLOGISTS:\n";
+	for (int i = 0; i < 2; i++)
+	{
+		if (neuro[i].check == 1)
+		{
+			cout << i << ". " << neuro[i].name << endl;
+		}
+	}
+
+	cout << "\nFAMILY PHYSICIAN:\n";
+	for (int i = 0; i < 5; i++)
+	{
+		if (fam[i].check == 1)
+		{
+			cout << i << ". " << fam[i].name << endl;
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO ADD PATIENT\n"
+		<< "2. PRESS 2 TO ADD APOINTMENT\n"
+		<< "3. PRESS 3 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { add_new_patient(username, password); }
+	else if (r == 2) { receptionappoint(username, password); }
+	else if (r == 3) { receptionmenu(username, password); }
+}
+void receptionappoint(string username, string password)
+{
+
+	grey;
+	int b = 0, ptfld = 0, ar = 0, p_ar = 0;
+	string usr, pass;
+	cout << "ENTER USERNAME:  "; cin >> usr;
+
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < ent[i].pat_pos; j++)
+		{
+			if (usr == ent[i].pat[j].user)
+			{
+				ptfld = 1;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < fam[i].pat_pos; j++)
+		{
+			if (usr == fam[i].pat[j].user)
+			{
+				ptfld = 7;
+				ar = i;
+				p_ar = j;
+			}
+		}
+
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < gyne[i].pat_pos; j++)
+		{
+			if (usr == gyne[i].pat[j].user)
+			{
+				ptfld = 3;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < uro[i].pat_pos; j++)
+		{
+			if (usr == uro[i].pat[j].user)
+			{
+				ptfld = 4;
+				ar = i;
+				p_ar = j;
+			}
+		}
+	}
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < card[i].pat_pos; j++)
+		{
+			if (usr == card[i].pat[j].user)
+			{
+				ptfld = 2;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < surg[i].pat_pos; j++)
+		{
+			if (usr == surg[i].pat[j].user)
+			{
+				ptfld = 5;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < neuro[i].pat_pos; j++)
+		{
+			if (usr == neuro[i].pat[j].user)
+			{
+				ptfld = 6;
+				ar = i;
+				p_ar = j;
+			}
+		}
+	}
+
+	if (ptfld == 0)
+	{
+		cout << "USERNAME NOT RECOGNIZED\n";
+	}
+	else
+	{
+		if (ptfld == 1)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (ent[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (ent[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					ent[ar].pa.appoint[date - 1][i] = p_ar;
+					ent[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+		else if (ptfld == 2)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (card[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (card[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					card[ar].pa.appoint[date - 1][i] = p_ar;
+					card[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+		else if (ptfld == 3)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (gyne[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (gyne[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					gyne[ar].pa.appoint[date - 1][i] = p_ar;
+					gyne[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+		else if (ptfld == 4)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (uro[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (uro[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					uro[ar].pa.appoint[date - 1][i] = p_ar;
+					uro[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+		else if (ptfld == 5)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (surg[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (surg[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					surg[ar].pa.appoint[date - 1][i] = p_ar;
+					surg[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+		else if (ptfld == 6)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (neuro[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (neuro[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					neuro[ar].pa.appoint[date - 1][i] = p_ar;
+					neuro[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+		else if (ptfld == 7)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			cout << "Date:\n";
+			while (a<31)
+			{
+				int c = 0;
+				for (int j = 0; j<5; j++)
+				{
+					if (fam[ar].pa.appoint[a][j] == NULL)
+					{
+						c = 1;
+					}
+				}
+				if (c == 1) { cout << a + 1 << endl; }
+				a++;
+			}
+			str;
+			cout << "ENTER DATE:  "; cin >> date; while (date < 1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+			while (i<5)
+			{
+				if (fam[ar].pa.appoint[date - 1][i] == NULL)
+				{
+					fam[ar].pa.appoint[date - 1][i] = p_ar;
+					fam[ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+					cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+					break;
+				}
+				i++;
+
+				if (i == 5)
+				{
+					cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+					if (date == 0) { break; }
+					i = 0;
+				}
+			}
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO ADD ANOTHER APPOINTMENT\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { receptionappoint(username, password); }
+	else if (r == 2) { receptionmenu(username, password); }
+}
+void reception_remove_appoint(string username, string password)
+{
+	grey;
+	int b = 0, ptfld = 0, ar = 0, p_ar = 0;
+	string usr, pass;
+	cout << "ENTER USERNAME:  "; cin >> usr;
+
+	for (int i = 0; i < 5; i++)
+	{
+		for (int j = 0; j < ent[i].pat_pos; j++)
+		{
+			if (usr == ent[i].pat[j].user)
+			{
+				ptfld = 1;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < fam[i].pat_pos; j++)
+		{
+			if (usr == fam[i].pat[j].user)
+			{
+				ptfld = 7;
+				ar = i;
+				p_ar = j;
+			}
+		}
+
+	}
+	for (int i = 0; i < 3; i++)
+	{
+		for (int j = 0; j < gyne[i].pat_pos; j++)
+		{
+			if (usr == gyne[i].pat[j].user)
+			{
+				ptfld = 3;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < uro[i].pat_pos; j++)
+		{
+			if (usr == uro[i].pat[j].user)
+			{
+				ptfld = 4;
+				ar = i;
+				p_ar = j;
+			}
+		}
+	}
+	for (int i = 0; i < 2; i++)
+	{
+		for (int j = 0; j < card[i].pat_pos; j++)
+		{
+			if (usr == card[i].pat[j].user)
+			{
+				ptfld = 2;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < surg[i].pat_pos; j++)
+		{
+			if (usr == surg[i].pat[j].user)
+			{
+				ptfld = 5;
+				ar = i;
+				p_ar = j;
+			}
+		}
+		for (int j = 0; j < neuro[i].pat_pos; j++)
+		{
+			if (usr == neuro[i].pat[j].user)
+			{
+				ptfld = 6;
+				ar = i;
+				p_ar = j;
+			}
+		}
+	}
+
+	str;
+
+	if (ptfld == 0)
+	{
+		cout << "USERNAME NOT RECOGNIZED\n";
+	}
+	else
+	{
+
+		if (ptfld == 1)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (ent[ar].pat[p_ar].patient_appoint[j] == 5 || ent[ar].pat[p_ar].patient_appoint[j] == 2 || ent[ar].pat[p_ar].patient_appoint[j] == 3 || ent[ar].pat[p_ar].patient_appoint[j] == 4 || ent[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+				if (ent[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (ent[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					ent[ar].pa.appoint[date - 1][u] = NULL;
+					ent[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+		else if (ptfld == 2)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (card[ar].pat[p_ar].patient_appoint[j] == 5 || card[ar].pat[p_ar].patient_appoint[j] == 2 || card[ar].pat[p_ar].patient_appoint[j] == 3 || card[ar].pat[p_ar].patient_appoint[j] == 4 || card[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+				if (card[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (card[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					card[ar].pa.appoint[date - 1][u] = NULL;
+					card[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+		else if (ptfld == 3)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (gyne[ar].pat[p_ar].patient_appoint[j] == 5 || gyne[ar].pat[p_ar].patient_appoint[j] == 2 || gyne[ar].pat[p_ar].patient_appoint[j] == 3 || gyne[ar].pat[p_ar].patient_appoint[j] == 4 || gyne[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+				if (gyne[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (gyne[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					gyne[ar].pa.appoint[date - 1][u] = NULL;
+					gyne[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+		else if (ptfld == 4)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (uro[ar].pat[p_ar].patient_appoint[j] == 5 || uro[ar].pat[p_ar].patient_appoint[j] == 2 || uro[ar].pat[p_ar].patient_appoint[j] == 3 || uro[ar].pat[p_ar].patient_appoint[j] == 4 || uro[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+				if (uro[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (uro[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					uro[ar].pa.appoint[date - 1][u] = NULL;
+					uro[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+		else if (ptfld == 5)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (surg[ar].pat[p_ar].patient_appoint[j] == 5 || surg[ar].pat[p_ar].patient_appoint[j] == 2 || surg[ar].pat[p_ar].patient_appoint[j] == 3 || surg[ar].pat[p_ar].patient_appoint[j] == 4 || surg[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+				if (surg[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (surg[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					surg[ar].pa.appoint[date - 1][u] = NULL;
+					surg[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+		else if (ptfld == 6)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (neuro[ar].pat[p_ar].patient_appoint[j] == 5 || neuro[ar].pat[p_ar].patient_appoint[j] == 2 || neuro[ar].pat[p_ar].patient_appoint[j] == 3 || neuro[ar].pat[p_ar].patient_appoint[j] == 4 || neuro[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+				if (neuro[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (neuro[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					neuro[ar].pa.appoint[date - 1][u] = NULL;
+					neuro[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+		else if (ptfld == 7)
+		{
+			int date = 0;
+			int i = 0, a = 0;
+
+			for (int j = 0; j < 31; j++)
+			{
+
+				if (fam[ar].pat[p_ar].patient_appoint[j] == 5 || fam[ar].pat[p_ar].patient_appoint[j] == 2 || fam[ar].pat[p_ar].patient_appoint[j] == 3 || fam[ar].pat[p_ar].patient_appoint[j] == 4 || fam[ar].pat[p_ar].patient_appoint[j] == 1)
+				{
+					cout << "Date:  " << j + 1 << endl;
+					a = 1;
+				}
+			}
+
+			str;
+			if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+			else
+			{
+
+				cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+				if (fam[ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+				{
+					int u = (fam[ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+					fam[ar].pa.appoint[date - 1][u] = NULL;
+					fam[ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+					cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+				}
+				else
+				{
+					cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+				}
+			}
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO REMOVE APPOINTMENT\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { reception_remove_appoint(username, password); }
+	else if (r == 2) { receptionmenu(username, password); }
+}
+void reception_account(string username, string password, int b)
+{
+	grey;
+	string user, pass, name;
+	int numuser = 0, numpass = 0;
+	cout << "\n\nENTER USERNAME:  "; cin >> user;
+	cout << "\nENTER PASSWORD:  "; cin >> pass;
+	if (user == username && pass == password)
+	{
+		cls;
+		grey;
+		int ch;
+
+		cout << "1. PRESS 1 TO CHANGE USERNAME\n"
+			<< "2. PRESS 2 TO CHANGE PASSWORD\n"
+			<< "3. PRESS 3 TO UPDATE NAME\n"
+			<< "PRESS OPTION:  "; cin >> ch; while (ch < 1 || ch>3) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> ch; }
+
+		str;
+		if (ch == 1)
+		{
+			cout << "CURRENT USERNAME:  " << username << endl;
+			cout << "ENTER NEW USERNAME:  "; cin >> user;
+			numuser = usernamecheck(user);
+			while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> user; numuser = usernamecheck(user); }
+			username = user;
+			rec[b].user = user;
+			cout << "YOUR NEW USERNAME IS:  " << user;
+		}
+		else if (ch == 2)
+		{
+			cout << "CURRENT PASSWORD:  " << password << endl;
+			cout << "ENTER NEW PASSWORD:  "; cin >> pass;
+			numpass = passwordcheck(pass);
+			while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> pass; numpass = passwordcheck(pass); }
+			password = pass;
+			rec[b].pass = pass;
+			cout << "YOUR NEW PASSWORD IS:  " << pass;
+		}
+		else if (ch == 3)
+		{
+			cout << "CURRENT NAME:  " << rec[b].name << endl;
+			cout << "UPDATE NAME:  "; cin.ignore(); getline(cin, name);
+			rec[b].name = name;
+			cout << "UPDATED NAME IS:  " << rec[b].name;
+		}
+
+	}
+	else
+	{
+		cout << "WRONG USERNAME OR PASSWORD\n";
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 FOR ACCOUNT SETTING\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { reception_account(username, password, b); }
+	else if (r == 2) { receptionmenu(username, password); }
+}
+void patientlist(string username, string password)
+{
+	int a = 0;
+	grey;
+
+	cout << "ENT PATIENTS:\n";
+	for (int i = 0; i < 5; i++)
+	{
+		ent[i].pat_list(a);
+	}
+
+	cout << "\nCARDIOLOGIST PATIENTS:\n";
+	for (int i = 0; i < 2; i++)
+	{
+		card[i].pat_list(a);
+	}
+
+	cout << "\nGYNECOLOGIST PATIENTS:\n";
+	for (int i = 0; i < 3; i++)
+	{
+		gyne[i].pat_list(a);
+	}
+
+	cout << "\nUROLOGIST PATIENTS:\n";
+	for (int i = 0; i < 3; i++)
+	{
+		uro[i].pat_list(a);
+	}
+
+	cout << "\nSURGEON PATIENTS:\n";
+	for (int i = 0; i < 2; i++)
+	{
+		surg[i].pat_list(a);
+	}
+
+	cout << "\nNEUROLOGIST PATIENTS:\n";
+	for (int i = 0; i < 2; i++)
+	{
+		neuro[i].pat_list(a);
+	}
+
+	cout << "\nFAMILY PHYSICIAN PATIENTS:\n";
+	for (int i = 0; i < 5; i++)
+	{
+		fam[i].pat_list(a);
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r != 1) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> r; }
+	cls;
+	if (r == 1)
+	{
+		receptionmenu(username, password);
+
+	}
+}
+
+
+
+
+//PATIENT MENU AND DATABASE
+void name_output(int ptfld, int d_ar, int p_ar)
+{
+	if (ptfld == 1)
+	{
+		cout << "***************************************************** " << ent[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 2)
+	{
+		cout << "***************************************************** " << card[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 3)
+	{
+		cout << "***************************************************** " << gyne[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 4)
+	{
+		cout << "***************************************************** " << uro[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 5)
+	{
+		cout << "***************************************************** " << surg[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 6)
+	{
+		cout << "***************************************************** " << neuro[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 7)
+	{
+		cout << "***************************************************** " << fam[d_ar].pat[p_ar].name << " *****************************************************" << "\n \n \n";
+	}
+}
+void name_output_v2(int ptfld, int d_ar, int p_ar)
+{
+	if (ptfld == 1)
+	{
+		cout << ent[d_ar].pat[p_ar].name;
+	}
+	else if (ptfld == 2)
+	{
+		cout << card[d_ar].pat[p_ar].name;
+	}
+	else if (ptfld == 3)
+	{
+		cout << gyne[d_ar].pat[p_ar].name;
+	}
+	else if (ptfld == 4)
+	{
+		cout << uro[d_ar].pat[p_ar].name;
+	}
+	else if (ptfld == 5)
+	{
+		cout << surg[d_ar].pat[p_ar].name;
+	}
+	else if (ptfld == 6)
+	{
+		cout << neuro[d_ar].pat[p_ar].name;
+	}
+	else if (ptfld == 7)
+	{
+		cout << fam[d_ar].pat[p_ar].name;
+	}
+}
+string doc_name(int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		return ent[d_ar].name;
+	}
+	else if (ptfld == 2)
+	{
+		return card[d_ar].name;
+	}
+	else if (ptfld == 3)
+	{
+		return gyne[d_ar].name;
+	}
+	else if (ptfld == 4)
+	{
+		return uro[d_ar].name;
+	}
+	else if (ptfld == 5)
+	{
+		return surg[d_ar].name;
+	}
+	else if (ptfld == 6)
+	{
+		return neuro[d_ar].name;
+	}
+	else if (ptfld == 7)
+	{
+		return fam[d_ar].name;
+	}
+}
+void user_change(string username, int ptfld, int d_ar, int p_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat[p_ar].user = username;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat[p_ar].user = username;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat[p_ar].user = username;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat[p_ar].user = username;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat[p_ar].user = username;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat[p_ar].user = username;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat[p_ar].user = username;
+	}
+}
+void pass_change(string password, int ptfld, int d_ar, int p_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat[p_ar].pass = password;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat[p_ar].pass = password;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat[p_ar].pass = password;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat[p_ar].pass = password;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat[p_ar].pass = password;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat[p_ar].pass = password;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat[p_ar].pass = password;
+	}
+}
+void name_change(string name, int ptfld, int d_ar, int p_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat[p_ar].name = name;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat[p_ar].name = name;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat[p_ar].name = name;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat[p_ar].name = name;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat[p_ar].name = name;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat[p_ar].name = name;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat[p_ar].name = name;
+	}
+}
+
+
+void patientmenu(string username, string password, int ptfld, int d_ar, int p_ar)
+{
+	red;
+	int a;
+	name_output(ptfld, d_ar, p_ar);
+
+	cout << "\t\t\t\t     1-  PRESS 1 TO ADD APPOINTMENT" << "\n\n"
+		<< "\t\t\t\t     2-  PRESS 2 TO VIEW APPOINTMENTS" << "\n\n"
+		<< "\t\t\t\t     3-  PRESS 3 TO VIEW DOCTORS DIAGNOSIS" << "\n\n"
+		<< "\t\t\t\t     4-  PRESS 4 TO CHANGE DOCTOR" << "\n\n"
+		<< "\t\t\t\t     5-  PRESS 5 FOR ACCOUNT SETTINGS" << "\n\n"
+		<< "\t\t\t\t     6-  PRESS 6 TO LOGOUT" << "\n\n\n"
+		<< "\t\t\t\t     PRESS YOUR OPTION: "; cin >> a;  while (a < 1 || a>6) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN:  "; cin >> a; }
+
+	if (a == 1)
+	{
+		cls;
+		addappoint(username, password, ptfld, d_ar, p_ar);
+	}
+	else if (a == 2)
+	{
+		cls;
+		viewappointment(username, password, ptfld, d_ar, p_ar);
+	}
+	else if (a == 3)
+	{
+		cls;
+		view_doctorcomment(username, password, ptfld, d_ar, p_ar);
+	}
+	else if (a == 4)
+	{
+		cls;
+		changedoctor(username, password, ptfld, d_ar, p_ar);
+	}
+	else if (a == 5)
+	{
+		cls;
+		pataccount(username, password, ptfld, d_ar, p_ar);
+	}
+	else if (a == 6)
+	{
+
+	}
+
+}
+
+void addappoint(string username, string password, int ptfld, int d_ar, int p_ar)
+{
+	string docname = doc_name(ptfld, d_ar);
+
+	cout << "DOCTOR:      " << docname;
+	str;
+
+	int i = 0, a = 0;
+	if (ptfld == 1)
+	{
+		int date = 0;
+		int i = 0, a = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (ent[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (ent[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				ent[d_ar].pa.appoint[date - 1][i] = p_ar;
+				ent[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+	else if (ptfld == 2)
+	{
+		int date = 0;
+		int i = 0, a = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (card[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (card[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				card[d_ar].pa.appoint[date - 1][i] = p_ar;
+				card[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+	else if (ptfld == 3)
+	{
+		int date = 0;
+		int i = 0, a = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (gyne[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (gyne[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				gyne[d_ar].pa.appoint[date - 1][i] = p_ar;
+				gyne[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+	else if (ptfld == 4)
+	{
+		int date = 0;
+		int i = 0, a = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (uro[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (uro[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				uro[d_ar].pa.appoint[date - 1][i] = p_ar;
+				uro[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+	else if (ptfld == 5)
+	{
+		int date = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (surg[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (surg[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				surg[d_ar].pa.appoint[date - 1][i] = p_ar;
+				surg[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+	else if (ptfld == 6)
+	{
+		int date = 0;
+		int i = 0, a = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (neuro[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (neuro[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				neuro[d_ar].pa.appoint[date - 1][i] = p_ar;
+				neuro[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+	else if (ptfld == 7)
+	{
+		int date = 0;
+		int i = 0, a = 0;
+
+		cout << "Date:\n";
+		while (a<31)
+		{
+			int c = 0;
+			for (int j = 0; j<5; j++)
+			{
+				if (fam[d_ar].pa.appoint[a][j] == NULL)
+				{
+					c = 1;
+				}
+			}
+			if (c == 1) { cout << a + 1 << endl; }
+			a++;
+		}
+		str;
+		cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+		while (i<5)
+		{
+			if (fam[d_ar].pa.appoint[date - 1][i] == NULL)
+			{
+				fam[d_ar].pa.appoint[date - 1][i] = p_ar;
+				fam[d_ar].pat[p_ar].patient_appoint[date - 1] = i + 1;
+				cout << "APPOINTMENT SET FOR " << date << ". YOU'RE TURN IS " << i + 1;
+				break;
+			}
+			i++;
+
+			if (i == 5)
+			{
+				cout << "ENTER ANOTHER DATE (press 0 to exit):  "; cin >> date; while (date < 0 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+				if (date == 0) { break; }
+				i = 0;
+			}
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW APPOINTMENTS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { viewappointment(username, password, ptfld, d_ar, p_ar); }
+	else if (r == 2) { patientmenu(username, password, ptfld, d_ar, p_ar); }
+
+}
+void viewappointment(string username, string password, int ptfld, int d_ar, int p_ar)
+{
+	int i = 0, a = 0;
+	int date;
+
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat[p_ar].viewappoint(a);
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat[p_ar].viewappoint(a);
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat[p_ar].viewappoint(a);
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat[p_ar].viewappoint(a);
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat[p_ar].viewappoint(a);
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat[p_ar].viewappoint(a);
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat[p_ar].viewappoint(a);
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO DELETE APPOINTMENTS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+
+	if (r == 1)
+	{
+		str;
+		if (a == 0) { cout << "YOU HAVE NO APPOINTMENT\n"; }
+		else if (ptfld == 1)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (ent[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (ent[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				ent[d_ar].pa.appoint[date - 1][u] = NULL;
+				ent[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+		else if (ptfld == 2)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (card[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (card[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				card[d_ar].pa.appoint[date - 1][u] = NULL;
+				card[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+		else if (ptfld == 3)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (gyne[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (gyne[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				gyne[d_ar].pa.appoint[date - 1][u] = NULL;
+				gyne[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+		else if (ptfld == 4)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (uro[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (uro[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				uro[d_ar].pa.appoint[date - 1][u] = NULL;
+				uro[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+		else if (ptfld == 5)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (surg[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (surg[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				surg[d_ar].pa.appoint[date - 1][u] = NULL;
+				surg[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+		else if (ptfld == 6)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (neuro[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (neuro[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				neuro[d_ar].pa.appoint[date - 1][u] = NULL;
+				neuro[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+		else if (ptfld == 7)
+		{
+			cout << "ENTER DATE:  "; cin >> date; while (date<1 || date>31) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> date; }
+
+
+			if (fam[d_ar].pat[p_ar].patient_appoint[date - 1] != NULL)
+			{
+				int u = (fam[d_ar].pat[p_ar].patient_appoint[date - 1]) - 1;
+				fam[d_ar].pa.appoint[date - 1][u] = NULL;
+				fam[d_ar].pat[p_ar].patient_appoint[date - 1] = NULL;
+
+				cout << "YOUR APPOINTMENT HAS BEEN REMOVED" << endl;
+			}
+			else
+			{
+				cout << "NO APPOINTMENT PRESENT ON THE DATE CHOSEN\n";
+			}
+		}
+
+		str;
+		int r = 0;
+		cout << "1. PRESS 1 TO VIEW APPOINTMENTS\n"
+			<< "2. PRESS 2 FOR MAIN MENU\n"
+			<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+		cls;
+		if (r == 1) { viewappointment(username, password, ptfld, d_ar, p_ar); }
+		else if (r == 2) { patientmenu(username, password, ptfld, d_ar, p_ar); }
+	}
+	else if (r == 2) { cls; patientmenu(username, password, ptfld, d_ar, p_ar); }
+}
+void view_doctorcomment(string username, string password, int ptfld, int d_ar, int p_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat[p_ar].viewdiagnostic();
+	}
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW DIAGNOSIS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR! TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { view_doctorcomment(username, password, ptfld, d_ar, p_ar); }
+	else if (r == 2) { patientmenu(username, password, ptfld, d_ar, p_ar); }
+}
+void changedoctor(string username, string password, int ptfld, int d_ar, int p_ar)
+{
+	int a;
+	string docname = doc_name(ptfld, d_ar);
+	cout << "CURRENT DOCTOR:  " << docname << endl;
+
+	str;
+
+	if (ptfld == 1)
+	{
+		int v;
+		int size = 5;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (ent[i].check == 1)
+			{
+				cout << i << ". " << ent[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		ent[v].shift_pat(username, password, ent[d_ar].pat[p_ar].name, ent[d_ar].pat[p_ar].id);
+		ent[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+	else if (ptfld == 2)
+	{
+		int v;
+		int size = 2;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (card[i].check == 1)
+			{
+				cout << i << ". " << card[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		card[v].shift_pat(username, password, card[d_ar].pat[p_ar].name, card[d_ar].pat[p_ar].id);
+		card[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+	else if (ptfld == 3)
+	{
+		int v;
+		int size = 3;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (gyne[i].check == 1)
+			{
+				cout << i << ". " << gyne[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		gyne[v].shift_pat(username, password, gyne[d_ar].pat[p_ar].name, gyne[d_ar].pat[p_ar].id);
+		gyne[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+	else if (ptfld == 4)
+	{
+		int v;
+		int size = 3;
+		for (int i = 0; i < size; i++)
+		{
+			if (uro[i].check == 1)
+			{
+				cout << i << ". " << uro[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		uro[v].shift_pat(username, password, uro[d_ar].pat[p_ar].name, uro[d_ar].pat[p_ar].id);
+		uro[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+	else if (ptfld == 5)
+	{
+		int v;
+		int size = 2;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (surg[i].check == 1)
+			{
+				cout << i << ". " << surg[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		surg[v].shift_pat(username, password, surg[d_ar].pat[p_ar].name, surg[d_ar].pat[p_ar].id);
+		surg[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+	else if (ptfld == 6)
+	{
+		int v;
+		int size = 2;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (neuro[i].check == 1)
+			{
+				cout << i << ". " << neuro[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		neuro[v].shift_pat(username, password, neuro[d_ar].pat[p_ar].name, neuro[d_ar].pat[p_ar].id);
+		neuro[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+	else if (ptfld == 7)
+	{
+		int v;
+		int size = 5;
+
+		for (int i = 0; i < size; i++)
+		{
+			if (fam[i].check == 1)
+			{
+				cout << i << ". " << fam[i].name << "\n\n";
+			}
+		}
+		cout << "PRESS OPTION :  "; cin >> v; while (v < 0 || v>(size - 1)) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> v; }
+
+		str;
+		fam[v].shift_pat(username, password, fam[d_ar].pat[p_ar].name, fam[d_ar].pat[p_ar].id);
+		fam[d_ar].remove_pat(p_ar);
+
+		cout << "Please LOG OUT and then LOG IN for UPDATES  \n";
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO ADD APPOINTMENTS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { addappoint(username, password, ptfld, d_ar, p_ar); }
+	else if (r == 2) { patientmenu(username, password, ptfld, d_ar, p_ar); }
+}
+void pataccount(string username, string password, int ptfld, int d_ar, int p_ar)
+{
+	string user, pass, name;
+	int numuser = 0, numpass = 0;
+	cout << "\n\nENTER USERNAME:  "; cin >> user;
+	cout << "ENTER PASSWORD:  "; cin >> pass;
+	if (user == username && pass == password)
+	{
+		cls;
+		int ch;
+
+		cout << "1. PRESS 1 TO CHANGE USERNAME\n"
+			<< "2. PRESS 2 TO CHANGE PASSWORD\n"
+			<< "3. PRESS 3 TO UPDATE NAME\n"
+			<< "PRESS OPTION:  "; cin >> ch; while (ch < 1 || ch>3)
+			cout << "ERROR! TRY AGAIN:  "; cin >> ch;
+		str;
+
+		if (ch == 1)
+		{
+			cout << "CURRENT USERNAME:  " << username << endl;
+			cout << "ENTER NEW USERNAME:  "; cin >> user;
+			numuser = usernamecheck(user);
+			while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> user; numuser = usernamecheck(user); }
+			username = user;
+			user_change(username, ptfld, d_ar, p_ar);
+			cout << "YOUR NEW USERNAME IS:  " << username;
+		}
+		else if (ch == 2)
+		{
+			cout << "CURRENT PASSWORD:  " << password << endl;
+			cout << "ENTER NEW PASSWORD:  "; cin >> pass;
+			numpass = passwordcheck(pass);
+			while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> pass; numpass = passwordcheck(pass); }
+			password = pass;
+			pass_change(password, ptfld, d_ar, p_ar);
+			cout << "YOUR NEW PASSWORD IS:  " << password;
+		}
+		else if (ch == 3)
+		{
+			cout << "CURRENT NAME:  "; name_output_v2(ptfld, d_ar, p_ar); cout << endl;
+			cout << "UPDATE NAME:  "; cin.ignore(); getline(cin, name);
+			name_change(name, ptfld, d_ar, p_ar);
+			cout << "UPDATED NAME IS:  " << name;
+		}
+		else
+		{
+			cout << "WRONG USERNAME OR PASSWORD\n";
+		}
+
+
+		str;
+		int r = 0;
+		cout << "1. PRESS 1 FOR ACCOUNT SETTING\n"
+			<< "2. PRESS 2 FOR MAIN MENU\n"
+			<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+		cls;
+		if (r == 1) { pataccount(username, password, ptfld, d_ar, p_ar); }
+		else if (r == 2) { patientmenu(username, password, ptfld, d_ar, p_ar); }
+
+
+	}
+}
+
+
+
+
+
+//P.A MENU AND DATABASE
+void ptfld_convert(int &ptfld)
+{
+	if (ptfld == 8) { ptfld = 1; }
+	if (ptfld == 9) { ptfld = 2; }
+	if (ptfld == 10) { ptfld = 3; }
+	if (ptfld == 11) { ptfld = 4; }
+	if (ptfld == 12) { ptfld = 5; }
+	if (ptfld == 13) { ptfld = 6; }
+	if (ptfld == 14) { ptfld = 7; }
+}
+void pa_name_output(string username, string password, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		cout << "***************************************************** " << ent[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 2)
+	{
+		cout << "***************************************************** " << card[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 3)
+	{
+		cout << "***************************************************** " << gyne[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 4)
+	{
+		cout << "***************************************************** " << uro[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 5)
+	{
+		cout << "***************************************************** " << surg[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 6)
+	{
+		cout << "***************************************************** " << neuro[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+	else if (ptfld == 7)
+	{
+		cout << "***************************************************** " << fam[d_ar].pa.name << " *****************************************************" << "\n \n \n";
+	}
+
+}
+void pa_user_change(string username, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pa.user = username;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pa.user = username;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pa.user = username;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pa.user = username;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pa.user = username;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pa.user = username;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pa.user = username;
+	}
+}
+void pa_pass_change(string password, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pa.pass = password;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pa.pass = password;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pa.pass = password;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pa.pass = password;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pa.pass = password;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pa.pass = password;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pa.pass = password;
+	}
+}
+void pa_name_change(string name, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pa.name = name;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pa.name = name;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pa.name = name;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pa.name = name;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pa.name = name;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pa.name = name;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pa.name = name;
+	}
+}
+
+void pamenu(string username, string password, int ptfld, int d_ar)
+{
+	blue;
+	int a;
+	ptfld_convert(ptfld);
+	pa_name_output(username, password, ptfld, d_ar);
+
+	cout << "\t\t\t\t     1-  PRESS 1 TO SET DATE AND MONTH" << "\n\n"
+		<< "\t\t\t\t     2-  PRESS 2 TO VIEW ALL APPOINTMENTS" << "\n\n"
+		<< "\t\t\t\t     3-  PRESS 3 TO VIEW LIST OF PATIENTS" << "\n\n"
+		<< "\t\t\t\t     4-  PRESS 4 FOR ACCOUNT SETTINGS" << "\n\n"
+		<< "\t\t\t\t     5-  PRESS 5 TO LOGOUT" << "\n\n\n"
+		<< "\t\t\t\t     PRESS YOUR OPTION: "; cin >> a;  while (a < 1 || a>5) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> a; }
+
+	if (a == 1)
+	{
+		cls;
+		set_date_month(username, password, ptfld, d_ar);
+	}
+	else if (a == 2)
+	{
+		cls;
+		view_all_appoint(username, password, ptfld, d_ar);
+	}
+	else if (a == 3)
+	{
+		cls;
+		view_all_patients(username, password, ptfld, d_ar);
+	}
+	else if (a == 4)
+	{
+		cls;
+		pa_account(username, password, ptfld, d_ar);
+	}
+	else if (a == 5)
+	{
+		cls;
+	}
+
+}
+
+void set_date_month(string username, string password, int ptfld, int d_ar)
+{
+	int op;
+	cout << "\t\t\t\t1. PRESS 1 TO SET TODAYS DATE \n"
+		<< "\t\t\t\t2. PRESS 2 TO SET MONTH\n"
+		<< "\t\t\t\tpress: "; cin >> op; while (op < 1 || op>2) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+	str;
+
+	if (op == 1)
+	{
+		if (ptfld == 1)
+		{
+			cout << "CURRENT DATE:  " << ent[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> ent[d_ar].pa.date;
+		}
+		else if (ptfld == 2)
+		{
+			cout << "CURRENT DATE:  " << card[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> card[d_ar].pa.date;
+		}
+		else if (ptfld == 3)
+		{
+			cout << "CURRENT DATE:  " << gyne[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> gyne[d_ar].pa.date;
+		}
+		else if (ptfld == 4)
+		{
+			cout << "CURRENT DATE:  " << uro[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> uro[d_ar].pa.date;
+		}
+		else if (ptfld == 5)
+		{
+			cout << "CURRENT DATE:  " << surg[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> surg[d_ar].pa.date;
+		}
+		else if (ptfld == 6)
+		{
+			cout << "CURRENT DATE:  " << neuro[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> neuro[d_ar].pa.date;
+		}
+		else if (ptfld == 7)
+		{
+			cout << "CURRENT DATE:  " << fam[d_ar].pa.date << endl;
+			cout << "\nENTER DATE:    "; cin >> fam[d_ar].pa.date;
+		}
+	}
+	else if (op == 2)
+	{
+		if (ptfld == 1)
+		{
+			cout << "CURRENT MONTH:  " << ent[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> ent[d_ar].pa.month;
+		}
+		else if (ptfld == 2)
+		{
+			cout << "CURRENT MONTH:  " << card[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> card[d_ar].pa.month;
+		}
+		else if (ptfld == 3)
+		{
+			cout << "CURRENT MONTH:  " << gyne[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> gyne[d_ar].pa.month;
+		}
+		else if (ptfld == 4)
+		{
+			cout << "CURRENT MONTH:  " << uro[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> uro[d_ar].pa.month;
+		}
+		else if (ptfld == 5)
+		{
+			cout << "CURRENT MONTH:  " << surg[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> surg[d_ar].pa.month;
+		}
+		else if (ptfld == 6)
+		{
+			cout << "CURRENT MONTH:  " << neuro[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> neuro[d_ar].pa.month;
+		}
+		else if (ptfld == 7)
+		{
+			cout << "CURRENT MONTH:  " << fam[d_ar].pa.month << endl;
+			cout << "\nUPDATE MONTH:    "; cin >> fam[d_ar].pa.month;
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO SET DATE/MONTH\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { set_date_month(username, password, ptfld, d_ar); }
+	else if (r == 2) { pamenu(username, password, ptfld, d_ar); }
+}
+void view_all_appoint(string username, string password, int ptfld, int d_ar)
+{
+	int q, ch;
+	int a = 0;
+
+	cout << "SELECT DATE:  \n\n";
+
+	if (ptfld == 1)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (ent[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (ent[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = ent[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 <<". "<< ent[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 2)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (card[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (card[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = card[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << card[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 3)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (gyne[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (gyne[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = gyne[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << gyne[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 4)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (uro[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (uro[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = uro[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << uro[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 5)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (surg[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (surg[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = surg[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << surg[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 6)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (neuro[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (neuro[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = neuro[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << neuro[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 7)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (fam[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (fam[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = fam[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << fam[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW ALL APPOINTMENTS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { view_all_appoint(username, password, ptfld, d_ar); }
+	else if (r == 2) { pamenu(username, password, ptfld, d_ar); }
+}
+void view_all_patients(string username, string password, int ptfld, int d_ar)
+{
+	int a = 0;
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat_list(a);
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat_list(a);
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat_list(a);
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat_list(a);
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat_list(a);
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat_list(a);
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat_list(a);
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW PATIENT\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1)
+	{
+		cls;
+		if (a == 1)
+		{
+			int p_ar;
+			cout << "ENTER PATIENT CODE (written with name):  "; cin >> p_ar; 
+
+			if (ptfld == 1)
+			{
+				while (p_ar<0 || p_ar>ent[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << ent[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 2)
+			{
+				while (p_ar<0 || p_ar>card[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << card[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 3)
+			{
+				while (p_ar<0 || p_ar>gyne[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << gyne[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 4)
+			{
+				while (p_ar<0 || p_ar>uro[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << uro[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 5)
+			{
+				while (p_ar<0 || p_ar>surg[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << surg[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 6)
+			{
+				while (p_ar<0 || p_ar>neuro[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << neuro[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 7)
+			{
+				while (p_ar<0 || p_ar>fam[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << fam[d_ar].pat[p_ar].pos << endl;
+			}
+		}
+		else
+		{
+			cout << "NO PATIENTS PRESENT\n";
+		}
+		str;
+		int x = 0;
+		cout << "1. PRESS 1 TO VIEW ALL APPOINTMENTS\n"
+			<< "2. PRESS 2 FOR MAIN MENU\n"
+			<< "PRESS OPTION:  "; cin >> x; while (x < 1 || x>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+		cls;
+		if (x == 1) { view_all_appoint(username, password, ptfld, d_ar); }
+		else if (x == 2) { pamenu(username, password, ptfld, d_ar); }
+	}
+	else if (r == 2) { pamenu(username, password, ptfld, d_ar); }
+}
+void pa_account(string username, string password, int ptfld, int d_ar)
+{
+	string user, pass, name;
+	int numuser = 0, numpass = 0;
+	cout << "\n\nENTER USERNAME:  "; cin >> user;
+	cout << "ENTER PASSWORD:  "; cin >> pass;
+	if (user == username && pass == password)
+	{
+		cls;
+		int ch;
+
+		cout << "1. PRESS 1 TO CHANGE USERNAME\n"
+			<< "2. PRESS 2 TO CHANGE PASSWORD\n"
+			<< "3. PRESS 3 TO UPDATE NAME\n"
+			<< "PRESS OPTION:  "; cin >> ch; while (ch < 1 || ch>3) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> ch; }
+
+		if (ch == 1)
+		{
+			cout << "CURRENT USERNAME:  " << username << endl;
+			cout << "ENTER NEW USERNAME:  "; cin >> user;
+			numuser = usernamecheck(user);
+			while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> user; numuser = usernamecheck(user); }
+			username = user;
+			pa_user_change(username, ptfld, d_ar);
+			cout << "YOUR NEW USERNAME IS:  " << username;
+		}
+		else if (ch == 2)
+		{
+			cout << "CURRENT PASSWORD:  " << password << endl;
+			cout << "ENTER NEW PASSWORD:  "; cin >> pass;
+			numpass = passwordcheck(pass);
+			while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> pass; numpass = passwordcheck(pass); }
+			password = pass;
+			pa_pass_change(password, ptfld, d_ar);
+			cout << "YOUR NEW PASSWORD IS:  " << password;
+		}
+		else if (ch == 3)
+		{
+			cout << "UPDATE NAME:  "; cin.ignore(); getline(cin, name);
+			pa_name_change(name, ptfld, d_ar);
+			cout << "UPDATED NAME IS:  " << name;
+		}
+
+	}
+	else
+	{
+		cout << "WRONG USERNAME OR PASSWORD\n";
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW ACCOUNT\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { pa_account(username, password, ptfld, d_ar); }
+	else if (r == 2) { pamenu(username, password, ptfld, d_ar); }
+}
+
+
+
+//DOCTOR MENU AND DATABASE
+void doc_name_output(string username, string password)
+{
+	int check[2], ptfld;
+	refer(username, password, check, ptfld);
+
+	if (check[0] == 1)
+	{
+		cout << "***************************************************** " << ent[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (check[0] == 2)
+	{
+		cout << "***************************************************** " << card[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (check[0] == 3)
+	{
+		cout << "***************************************************** " << gyne[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (check[0] == 4)
+	{
+		cout << "***************************************************** " << uro[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (check[0] == 5)
+	{
+		cout << "***************************************************** " << surg[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (check[0] == 6)
+	{
+		cout << "***************************************************** " << neuro[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+	else if (check[0] == 7)
+	{
+		cout << "***************************************************** " << fam[check[1]].name << " *****************************************************" << "\n \n \n";
+	}
+
+}
+void doc_user_change(string username, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].user = username;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].user = username;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].user = username;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].user = username;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].user = username;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].user = username;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].user = username;
+	}
+}
+void doc_pass_change(string password, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].pass = password;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pass = password;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pass = password;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pass = password;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pass = password;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pass = password;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pass = password;
+	}
+}
+void doc_name_change(string name, int ptfld, int d_ar)
+{
+	if (ptfld == 1)
+	{
+		ent[d_ar].name = name;
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].name = name;
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].name = name;
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].name = name;
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].name = name;
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].name = name;
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].name = name;
+	}
+}
+
+void doctormenu(string username, string password, int ptfld, int d_ar)
+{
+	green;
+	int a;
+	doc_name_output(username, password);
+
+
+	cout << "\t\t\t\t     1-  PRESS 1 TO VIEW TODAY'S APPOINTMENT" << "\n\n"
+		<< "\t\t\t\t     2-  PRESS 2 TO VIEW ALL APPOINTMENTS" << "\n\n"
+		<< "\t\t\t\t     3-  PRESS 3 TO VIEW LIST OF PATIENTS" << "\n\n"
+		<< "\t\t\t\t     4-  PRESS 4 FOR ACCOUNT SETTINGS" << "\n\n"
+		<< "\t\t\t\t     5-  PRESS 5 TO LOGOUT" << "\n\n\n"
+		<< "\t\t\t\t     PRESS YOUR OPTION: "; cin >> a;  while (a < 1 || a>6) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> a; }
+
+	if (a == 1)
+	{
+		cls;
+		view_today_appoint(username, password, ptfld, d_ar);
+	}
+	else if (a == 2)
+	{
+		cls;
+		doc_view_all_appoint(username, password, ptfld, d_ar);
+	}
+	else if (a == 3)
+	{
+		cls;
+		doc_view_all_patients(username, password, ptfld, d_ar);
+	}
+	else if (a == 4)
+	{
+		cls;
+		doc_account(username, password, ptfld, d_ar);
+	}
+	else if (a == 5)
+	{
+
+	}
+
+}
+
+void doc_view_all_patients(string username, string password, int ptfld, int d_ar)
+{
+	int a = 0;
+	if (ptfld == 1)
+	{
+		ent[d_ar].pat_list(a);
+	}
+	else if (ptfld == 2)
+	{
+		card[d_ar].pat_list(a);
+	}
+	else if (ptfld == 3)
+	{
+		gyne[d_ar].pat_list(a);
+	}
+	else if (ptfld == 4)
+	{
+		uro[d_ar].pat_list(a);
+	}
+	else if (ptfld == 5)
+	{
+		surg[d_ar].pat_list(a);
+	}
+	else if (ptfld == 6)
+	{
+		neuro[d_ar].pat_list(a);
+	}
+	else if (ptfld == 7)
+	{
+		fam[d_ar].pat_list(a);
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW PATIENT\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1)
+	{
+		cls;
+		if (a == 1)
+		{
+			int p_ar;
+			cout << "ENTER PATIENT CODE (written with name):  "; cin >> p_ar;
+
+			if (ptfld == 1)
+			{
+				while (p_ar<0 || p_ar>ent[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << ent[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 2)
+			{
+				while (p_ar<0 || p_ar>card[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << card[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 3)
+			{
+				while (p_ar<0 || p_ar>gyne[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << gyne[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 4)
+			{
+				while (p_ar<0 || p_ar>uro[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << uro[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 5)
+			{
+				while (p_ar<0 || p_ar>surg[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << surg[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 6)
+			{
+				while (p_ar<0 || p_ar>neuro[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << neuro[d_ar].pat[p_ar].pos << endl;
+			}
+			else if (ptfld == 7)
+			{
+				while (p_ar<0 || p_ar>fam[d_ar].pat_pos) { cout << "ENTER AGAIN:  "; cin >> p_ar; }
+
+				str;
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "NUMBER OF DIAGNOSIS:  " << fam[d_ar].pat[p_ar].pos << endl;
+			}
+		}
+		else
+		{
+			cout << "NO PATIENTS PRESENT\n";
+		}
+		str;
+		int x = 0;
+		cout << "1. PRESS 1 TO VIEW ALL APPOINTMENTS\n"
+			<< "2. PRESS 2 FOR MAIN MENU\n"
+			<< "PRESS OPTION:  "; cin >> x; while (x < 1 || x>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+		cls;
+		if (x == 1) { doc_view_all_appoint(username, password, ptfld, d_ar); }
+		else if (x == 2) { doctormenu(username, password, ptfld, d_ar); }
+	}
+	else if (r == 2) { doctormenu(username, password, ptfld, d_ar); }
+}
+void view_today_appoint(string username, string password, int ptfld, int d_ar)
+{
+	int d, q, c = 0, op;
+
+	if (ptfld == 1)
+	{
+		d = ent[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << ent[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (ent[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = ent[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 <<". " <<ent[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patient:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label:
+			cls;
+			int prs;
+			int p_ar = ent[d_ar].pa.appoint[d - 1][op - 1];
+			if (op == 1)
+			{
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					ent[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else if (prs == 2)
+				{
+					ent[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else
+				{
+					ent[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					ent[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else if (prs == 2)
+				{
+					ent[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else
+				{
+					ent[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					ent[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else if (prs == 2)
+				{
+					ent[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else
+				{
+					ent[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					ent[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else if (prs == 2)
+				{
+					ent[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else
+				{
+					ent[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << ent[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << ent[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					ent[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else if (prs == 2)
+				{
+					ent[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label;
+				}
+				else
+				{
+					ent[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+
+	}
+	else if (ptfld == 2)
+	{
+		d = card[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << card[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (card[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = card[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 << card[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patieant:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label1:
+			cls;
+			int prs;
+			int p_ar = card[d_ar].pa.appoint[d - 1][op - 1];
+
+			if (op == 1)
+			{
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					card[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else if (prs == 2)
+				{
+					card[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else
+				{
+					card[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					card[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else if (prs == 2)
+				{
+					card[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else
+				{
+					card[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					card[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else if (prs == 2)
+				{
+					card[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else
+				{
+					card[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					card[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else if (prs == 2)
+				{
+					card[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else
+				{
+					card[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << card[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << card[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					card[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else if (prs == 2)
+				{
+					card[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label1;
+				}
+				else
+				{
+					card[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+
+	}
+	else if (ptfld == 3)
+	{
+		d = gyne[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << gyne[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (gyne[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = gyne[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 << gyne[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patieant:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label2:
+			cls;
+			int prs;
+			int p_ar = gyne[d_ar].pa.appoint[d - 1][op - 1];
+
+			if (op == 1)
+			{
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					gyne[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else if (prs == 2)
+				{
+					gyne[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else
+				{
+					gyne[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					gyne[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else if (prs == 2)
+				{
+					gyne[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else
+				{
+					gyne[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					gyne[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else if (prs == 2)
+				{
+					gyne[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else
+				{
+					gyne[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					gyne[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else if (prs == 2)
+				{
+					gyne[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else
+				{
+					gyne[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << gyne[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << gyne[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					gyne[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else if (prs == 2)
+				{
+					gyne[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label2;
+				}
+				else
+				{
+					gyne[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+	}
+	else if (ptfld == 4)
+	{
+		d = uro[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << uro[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (uro[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = uro[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 << uro[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patieant:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label3:
+			cls;
+			int prs;
+			int p_ar = uro[d_ar].pa.appoint[d - 1][op - 1];
+
+			if (op == 1)
+			{
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					uro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else if (prs == 2)
+				{
+					uro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else
+				{
+					uro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					uro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else if (prs == 2)
+				{
+					uro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else
+				{
+					uro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					uro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else if (prs == 2)
+				{
+					uro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else
+				{
+					uro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					uro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else if (prs == 2)
+				{
+					uro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else
+				{
+					uro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << uro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << uro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					uro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else if (prs == 2)
+				{
+					uro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label3;
+				}
+				else
+				{
+					uro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+	}
+	else if (ptfld == 5)
+	{
+		d = surg[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << surg[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (surg[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = surg[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 << surg[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patieant:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label4:
+			cls;
+			int prs;
+			int p_ar = surg[d_ar].pa.appoint[d - 1][op - 1];
+
+			if (op == 1)
+			{
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					surg[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else if (prs == 2)
+				{
+					surg[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else
+				{
+					surg[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					surg[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else if (prs == 2)
+				{
+					surg[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else
+				{
+					surg[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					surg[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else if (prs == 2)
+				{
+					surg[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else
+				{
+					surg[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					surg[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else if (prs == 2)
+				{
+					surg[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else
+				{
+					surg[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << surg[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << surg[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					surg[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else if (prs == 2)
+				{
+					surg[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label4;
+				}
+				else
+				{
+					surg[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+	}
+	else if (ptfld == 6)
+	{
+		d = neuro[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << neuro[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (neuro[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = neuro[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 << neuro[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patieant:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label5:
+			cls;
+			int prs;
+			int p_ar = neuro[d_ar].pa.appoint[d - 1][op - 1];
+
+			if (op == 1)
+			{
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					neuro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else if (prs == 2)
+				{
+					neuro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else
+				{
+					neuro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					neuro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else if (prs == 2)
+				{
+					neuro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else
+				{
+					neuro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					neuro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else if (prs == 2)
+				{
+					neuro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else
+				{
+					neuro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					neuro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else if (prs == 2)
+				{
+					neuro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else
+				{
+					neuro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << neuro[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << neuro[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					neuro[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else if (prs == 2)
+				{
+					neuro[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label5;
+				}
+				else
+				{
+					neuro[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+	}
+	else if (ptfld == 7)
+	{
+		d = fam[d_ar].pa.date;
+		cout << "\t\t\t\tDATE:   " << d << endl
+			<< "\t\t\t\tMONTH:  " << fam[d_ar].pa.month << endl;
+
+		for (int i = 0; i < 5; i++)
+		{
+			if (fam[d_ar].pa.appoint[d - 1][i] != NULL)
+			{
+				q = fam[d_ar].pa.appoint[d - 1][i];
+				cout << i + 1 << fam[d_ar].pat[q].name << endl;
+				c = 1;
+			}
+		}
+
+		str;
+		if (c == 1)
+		{
+			cout << "Select a Patieant:  "; cin >> op; while (op < 1 || op>5) { cout << "TRY! AGAIN:  "; cin >> op; }
+
+		label6:
+			cls;
+			int prs;
+			int p_ar = fam[d_ar].pa.appoint[d - 1][op - 1];
+
+			if (op == 1)
+			{
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					fam[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else if (prs == 2)
+				{
+					fam[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else
+				{
+					fam[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+
+			}
+			else if (op == 2)
+			{
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					fam[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else if (prs == 2)
+				{
+					fam[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else
+				{
+					fam[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 3)
+			{
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					fam[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else if (prs == 2)
+				{
+					fam[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else
+				{
+					fam[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 4)
+			{
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					fam[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else if (prs == 2)
+				{
+					fam[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else
+				{
+					fam[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+			else if (op == 5)
+			{
+				cout << "NAME:  " << fam[d_ar].pat[p_ar].name << endl
+					<< "I.D:  " << fam[d_ar].pat[p_ar].id << endl
+					<< "\n\t\t\t\t1. PRESS 1 FOR TO VIEW PREVIOUS DIAGNOSIS" << endl
+					<< "\t\t\t\t2. PRESS 2 TO ENTRE DIAGNOSIS" << endl
+					<< "\t\t\t\t3. PRESS 3 TO EXIT" << endl
+					<< "\t\t\t\tpress:  "; cin >> prs; while (prs < 1 || prs>3) { cout << "TRY!AGAIN:  "; cin >> prs; }
+
+				if (prs == 1)
+				{
+					fam[d_ar].pat[p_ar].viewdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else if (prs == 2)
+				{
+					fam[d_ar].pat[p_ar].enterdiagnostic();
+					str;
+					system("pause");
+					goto label6;
+				}
+				else
+				{
+					fam[d_ar].pa.appoint[d - 1][op - 1] = NULL;
+				}
+			}
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW TODAY'S APPOINTMENTS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { view_today_appoint(username, password, ptfld, d_ar); }
+	else if (r == 2) { doctormenu(username, password, ptfld, d_ar); }
+}
+void doc_view_all_appoint(string username, string password, int ptfld, int d_ar)
+{
+	int q, ch;
+	int a = 0;
+
+	cout << "SELECT DATE:  \n\n";
+
+	if (ptfld == 1)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (ent[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (ent[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = ent[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << ent[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 2)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (card[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (card[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = card[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << card[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 3)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (gyne[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (gyne[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = gyne[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << gyne[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 4)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (uro[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (uro[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = uro[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << uro[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 5)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (surg[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (surg[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = surg[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << surg[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 6)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (neuro[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (neuro[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = neuro[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << neuro[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+	else if (ptfld == 7)
+	{
+		for (int i = 0; i < 31; i++)
+		{
+			int b = 0;
+			for (int j = 0; j < 5; j++)
+			{
+				if (fam[d_ar].pa.appoint[i][j] != NULL)
+				{
+					b = 1;
+					a = 1;
+				}
+			}
+			if (b == 1)
+			{
+				cout << i + 1 << endl;
+			}
+		}
+
+		if (a != 0)
+		{
+			int y = 0;
+			str;
+			cout << "Select Date:  "; cin >> ch; while (ch < 1 || ch>31) { cout << "TRY! AGAIN:  "; cin >> ch; }
+			str;
+
+			for (int i = 0; i < 5; i++)
+			{
+				if (fam[d_ar].pa.appoint[ch - 1][i] != NULL)
+				{
+					q = fam[d_ar].pa.appoint[ch - 1][i];
+					cout << i + 1 << ". " << fam[d_ar].pat[q].name << endl;
+					y = 1;
+				}
+			}
+			if (y != 1)
+			{
+				cout << "NO APPOINTMENT ON SELECTED DATE\n";
+			}
+		}
+		else
+		{
+			cout << "NO APPOINTMENTS\n";
+		}
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW ALL APPOINTMENTS\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { doc_view_all_appoint(username, password, ptfld, d_ar); }
+	else if (r == 2) { doctormenu(username, password, ptfld, d_ar); }
+}
+void doc_account(string username, string password, int ptfld, int d_ar)
+{
+	string user, pass, name;
+	int numuser = 0, numpass = 0;
+	cout << "\n\nENTER USERNAME:  "; cin >> user;
+	cout << "ENTER PASSWORD:  "; cin >> pass;
+	if (user == username && pass == password)
+	{
+		cls;
+		int ch;
+
+		cout << "1. PRESS 1 TO CHANGE USERNAME\n"
+			<< "2. PRESS 2 TO CHANGE PASSWORD\n"
+			<< "3. PRESS 3 TO UPDATE NAME\n"
+			<< "PRESS OPTION:  "; cin >> ch; while (ch < 1 || ch>3) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN:  "; cin >> ch; }
+
+		if (ch == 1)
+		{
+			cout << "CURRENT USERNAME:  " << username << endl;
+			cout << "ENTER NEW USERNAME:  "; cin >> user;
+			numuser = usernamecheck(user);
+			while (numuser == 1) { cout << "USERNAME TAKEN! TRY AGAIN:  "; cin >> user; numuser = usernamecheck(user); }
+			username = user;
+			doc_user_change(username, ptfld, d_ar);
+			cout << "YOUR NEW USERNAME IS:  " << username;
+		}
+		else if (ch == 2)
+		{
+			cout << "CURRENT PASSWORD:  " << password << endl;
+			cout << "ENTER NEW PASSWORD:  "; cin >> pass;
+			numpass = passwordcheck(pass);
+			while (numpass == 1) { cout << "PASSWORD TAKEN! TRY AGAIN:  "; cin >> pass; numpass = passwordcheck(pass); }
+			password = pass;
+			doc_pass_change(password, ptfld, d_ar);
+			cout << "YOUR NEW PASSWORD IS:  " << password;
+		}
+		else if (ch == 3)
+		{
+			cout << "UPDATE NAME:  "; cin.ignore(); getline(cin, name);
+			doc_name_change(name, ptfld, d_ar);
+			cout << "UPDATED NAME IS:  " << name;
+		}
+
+	}
+	else
+	{
+		cout << "WRONG USERNAME OR PASSWORD\n";
+	}
+
+	str;
+	int r = 0;
+	cout << "1. PRESS 1 TO VIEW ACCOUNT\n"
+		<< "2. PRESS 2 FOR MAIN MENU\n"
+		<< "PRESS OPTION:  "; cin >> r; while (r < 1 || r>2) { cin.clear(); cin.ignore(); cout << "ERROR!  TRY AGAIN: "; cin >> r; }
+	cls;
+	if (r == 1) { doc_account(username, password, ptfld, d_ar); }
+	else if (r == 2) { doctormenu(username, password, ptfld, d_ar); }
+}
